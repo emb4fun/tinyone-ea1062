@@ -1,0 +1,15 @@
+#
+# Ignore files by file types
+#
+**/*.bak
+
+#
+# Some more specific rules
+#
+build/
+CodeWright/
+lint/
+prj/Flash Debug/
+prj/Flash Release/
+prj/TCM Debug/
+prj/TCM Release/

@@ -1,0 +1,13 @@
+#
+# Ignore files by file types
+#
+**/*.bak
+
+#
+# Some more specific rules
+#
+build/
+CodeWright/
+lint/
+prj/SDRAM Debug/
+prj/SDRAM Release/
