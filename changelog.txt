@@ -1,5 +1,10 @@
 
 TinyONE ChangeLog for an Embedded Artists "iMX RT1062 Developer’s Kit"
 
+= 19.12.2022
+   * SES v7.10a used.
+   * Added login dummy in case no login is required (IP_WEB_SID_SUPPORT = 0).
+   * Some correction for the same functionality like the tinyone project.   
+
 = Version 1.10 / 1.10, 17.12.2022
    * First version for GitHub.

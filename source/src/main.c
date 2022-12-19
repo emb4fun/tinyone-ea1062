@@ -48,6 +48,8 @@
 #include "mbedtls/version.h"
 #include "iperf.h"
 
+void ATInit(void);
+
 /*=======================================================================*/
 /*  All Structures and Common Constants                                  */
 /*=======================================================================*/
@@ -152,10 +154,13 @@ static void SecFunction (void)
 {
    static int nOldMode = 1;
    static int nNewMode = 1;
+   char        Buffer[16];
    
    if (1 == nDHCPCallbackBound)
    {
       nDHCPCallbackBound = 0;
+      
+      term_printf("Iface 0: %s\r\n", htoa(IP_IF_AddrGet(0), Buffer, sizeof(Buffer)));
       
       IP_mDNS_Start(&MDNSConfig); 
       IP_TNP_SetName(MDNSConfig.Hostname2, (uint8_t)strlen(MDNSConfig.Hostname2));
@@ -190,6 +195,7 @@ static void SecFunction (void)
          else
          {
             nLedMode = LED_MODE_READY;
+            term_printf("Iface 0: %s\r\n", htoa(IP_IF_AddrGet(0), Buffer, sizeof(Buffer)));
          }
       }
   
@@ -531,6 +537,8 @@ static void StartTask (void *p)
 
    IP_DHCP_ServerInit();  /* Initialize the DHCP server */
    IP_SNTP_ServerInit();  /* Initialize the SNTP server */
+
+   ATInit();
 
    IP_WEBS_Start(80);     /* Start the web server */
    IP_WEBS_SSLStart(443);

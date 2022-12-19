@@ -58,7 +58,7 @@
 
 #define IPERF_TCP_PORT     5001
 
-#define MAX_IPERF_CLIENT   8
+#define MAX_IPERF_CLIENT   4
 
 typedef struct _client_info_
 {
@@ -104,7 +104,7 @@ static client_info_t *FindFreeClient (void)
    
    for (int i=0; i<MAX_IPERF_CLIENT; i++)
    {
-      if ( OS_TEST_STATE_NOT_IN_USED(&ClientArray[i].TCB) )
+      if (OS_TASK_STATE_NOT_IN_USE == ClientArray[i].TCB.State)
       {
          Client = &ClientArray[i];
          break;
@@ -176,7 +176,7 @@ static void IperfServer (void *p)
    Server.sin_family      = AF_INET;
    
    /* Assign a name (port) to an unnamed socket */
-   bind(ServerSocket, (const struct sockaddr *)&Server, sizeof(Server));   /*lint !e740*/
+   bind(ServerSocket, (const struct sockaddr *)&Server, sizeof(Server));
    
    listen(ServerSocket, MAX_IPERF_CLIENT);
    

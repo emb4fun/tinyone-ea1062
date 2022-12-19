@@ -98,6 +98,7 @@
             <file file_name="../common/library/ipweb/src/web_cgi.c" />
             <file file_name="../common/library/ipweb/src/web_json.c" />
             <file file_name="../common/library/ipweb/src/web_login.c" />
+            <file file_name="../common/library/ipweb/src/web_login_dummy.c" />
             <file file_name="../common/library/ipweb/src/web_sid.c" />
             <file file_name="../common/library/ipweb/src/web_sid_dummy.c" />
             <file file_name="../common/library/ipweb/src/web_ssi.c" />
@@ -292,6 +293,7 @@
           </folder>
           <folder Name="uhttp">
             <folder Name="modules">
+              <file file_name="../common/library/uhttp/addon/src/mod_api.c" />
               <file file_name="../common/library/uhttp/src/modules/mod_auth_basic.c" />
               <file file_name="../common/library/uhttp/src/modules/mod_cgi_func.c" />
               <file file_name="../common/library/uhttp/src/modules/mod_redir.c" />
@@ -337,6 +339,7 @@
         </folder>
       </folder>
       <folder Name="src">
+        <file file_name="../src/api_test.c" />
         <file file_name="../src/main.c" />
         <file file_name="../src/xmempool.c" />
       </folder>
