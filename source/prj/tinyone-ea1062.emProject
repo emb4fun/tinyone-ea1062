@@ -71,6 +71,9 @@
           <folder Name="adler32">
             <file file_name="../common/library/adler32/adler32.c" />
           </folder>
+          <folder Name="base32">
+            <file file_name="../common/library/base32/base32.c" />
+          </folder>
           <folder Name="fatfs">
             <file file_name="../common/library/fatfs/src/ff.c" />
             <file file_name="../common/library/fatfs/src/ffunicode.c" />
@@ -340,6 +343,7 @@
       </folder>
       <folder Name="src">
         <file file_name="../src/api_test.c" />
+        <file file_name="../src/elca_client.c" />
         <file file_name="../src/main.c" />
         <file file_name="../src/xmempool.c" />
       </folder>
