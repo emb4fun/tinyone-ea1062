@@ -1,6 +1,11 @@
 
 TinyONE ChangeLog for an Embedded Artists "iMX RT1062 Developer’s Kit"
 
+= 04.01.2023
+   * Reworked TOTP functionality. 
+     Added own check function, WebUserCheckUserPasswordTOTP.
+     Added functionality to disable two-factor authentication using TOTP.
+     
 = 19.12.2022
    * SES v7.10a used.
    * Added login dummy in case no login is required (IP_WEB_SID_SUPPORT = 0).
