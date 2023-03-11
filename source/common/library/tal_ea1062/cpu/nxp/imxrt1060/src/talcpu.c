@@ -173,12 +173,6 @@ void tal_CPUInit (void)
 
       /* Sets the "Priority Grouping" to the default value 0 */
       NVIC_SetPriorityGrouping(0);
-      
-#if defined(RTOS_UCOS3) && (defined(__VTOR_CONFIG) || defined(__VECTORS_IN_RAM))
-      NVIC_SetVector(PendSV_IRQn,  (uint32_t)OS_CPU_PendSVHandler);
-      NVIC_SetVector(SysTick_IRQn, (uint32_t)OS_CPU_SysTickHandler);
-#endif
-
    }
 
 } /* tal_CPUInit */
@@ -197,6 +191,41 @@ void tal_CPUSysTickStart (void)
    /* Enable SysTick IRQ and SysTick Timer */
    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 } /* tal_CPUSysTickStart */
+
+/*************************************************************************/
+/*  tal_CPUStatDWTInit                                                   */
+/*                                                                       */
+/*  Enable the Debug Exception and Monitor Control block.                */
+/*  See DDI0403D_armv7m_arm.pdf.                                         */
+/*                                                                       */
+/*  In    : none                                                         */
+/*  Out   : none                                                         */
+/*  Return: none                                                         */
+/*************************************************************************/
+void tal_CPUStatDWTInit (void)
+{
+   /* DWT and ITM blocks enabled */
+   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+   
+   /* Enabled CYCCNT */
+   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+} /* tal_CPUStatDWTInit */
+
+/*************************************************************************/
+/*  tal_CPUStatDWTGetCnt                                                 */
+/*                                                                       */
+/*  Return the clock cycle counter.                                      */
+/*  See DDI0403D_armv7m_arm.pdf.                                         */
+/*                                                                       */
+/*  In    : none                                                         */
+/*  Out   : none                                                         */
+/*  Return: CYCCNT                                                       */
+/*************************************************************************/
+uint32_t tal_CPUStatDWTGetCnt (void)
+{
+   /* Return the clock cycle counter */
+   return(DWT->CYCCNT);
+} /* tal_CPUStatDWTGetCnt */
 
 /*************************************************************************/
 /*  tal_CPUIrqEnable                                                     */
@@ -459,7 +488,6 @@ void tal_CPUReboot (void)
    
 } /* tal_CPUReboot */
 
-#if !defined(RTOS_UCOS3)
 /*************************************************************************/
 /*  SysTick_Handler                                                      */
 /*                                                                       */
@@ -475,6 +503,5 @@ void SysTick_Handler (void)
    
    TAL_CPU_IRQ_EXIT();
 } /* SysTick_Handler */
-#endif /* !defined(RTOS_UCOS) */
 
 /*** EOF ***/

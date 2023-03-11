@@ -37,10 +37,6 @@
 #include "sys_arch_tcts.h"
 #endif
 
-#if defined(RTOS_UCOS3)
-#include "sys_arch_ucos3.h"
-#endif
-
 #endif /* __SYS_ARCH_H__ */
 
 /*** EOF ***/

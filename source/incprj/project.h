@@ -99,7 +99,7 @@
 #define TASK_IP_SNTP_SERVER_STK_SIZE      1024
 
 #define TASK_IP_ELCAC_PRIORITY            40
-#define TASK_IP_ELCAC_STK_SIZE            (4*1024)
+#define TASK_IP_ELCAC_STK_SIZE            (8*1024)
 
 #define TASK_IP_TNP_PRIORITY              39
 #define TASK_IP_TNP_STK_SIZE              1536

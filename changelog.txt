@@ -1,7 +1,7 @@
 ***************************************************************************
 * Project: tinyone-ea1062
 * Name   : "A small embedded DHCP and SNTP server"
-* Target : Embedded Artists "iMX RT1062 Developer's Kit" 
+* Target : Embedded Artists "iMX RT1062 Developer's Kit"
 * Version: 20230104
 ***************************************************************************
 * Tools  : SEGGER Embedded Studio for ARM v7.12
@@ -10,17 +10,24 @@
 * URL    : https://www.emb4fun.de/projects/tone/index.html
 ***************************************************************************
 
+= 11.03.2023
+   * Used SEGGER Embedded Studio for ARM v7.12.
+   * Removed uC/OS-III support.
+   * Updated tal and tcts headers.
+   * Updated tcts functionality.
+   * Added and used old FatFs function mem_set, mem_cmp and chk_chr.
+
 = 04.01.2023
-   * Reworked TOTP functionality. 
+   * Reworked TOTP functionality.
      Added own check function, WebUserCheckUserPasswordTOTP.
      Added functionality to disable two-factor authentication using TOTP.
-     
+
 = 19.12.2022
    * SES v7.10a used.
    * Added login dummy in case no login is required (IP_WEB_SID_SUPPORT = 0).
-   * Some correction for the same functionality like the tinyone project.   
+   * Some correction for the same functionality like the tinyone project.
 
 = Version 1.10 / 1.10, 17.12.2022
    * First version for GitHub.
-   
+
 ***************************************************************************

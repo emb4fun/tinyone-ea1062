@@ -319,7 +319,11 @@ osa_status_t OSA_MutexUnlock (osa_mutex_handle_t mutexHandle)
 
       if (0U != __get_IPSR())
       {
-         OS_MutexSignalFromInt(pMutex);
+         while(1)
+         {
+          /* Not supported */
+          __asm__ volatile ("nop");
+         }
       }
       else
       {

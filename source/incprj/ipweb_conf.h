@@ -49,8 +49,6 @@
 #define IP_WEB_SID_LOGIN_TIMEOUT_SEC      60
 #define IP_WEB_SID_TIMEOUT_SEC            (10*60)
 
-#define IP_WEB_API_SUPPORT                1
-
 /**************************************************************************
 *  Macro Definitions
 **************************************************************************/

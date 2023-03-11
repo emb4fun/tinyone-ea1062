@@ -104,7 +104,7 @@ static client_info_t *FindFreeClient (void)
    
    for (int i=0; i<MAX_IPERF_CLIENT; i++)
    {
-      if ( OS_TEST_STATE_NOT_IN_USED(&ClientArray[i].TCB) )
+      if ( OS_TaskTestStateNotInUsed(&ClientArray[i].TCB) )
       {
          Client = &ClientArray[i];
          break;
@@ -141,6 +141,7 @@ static void IperfClient (void *arg)
    shutdown(Sock, SHUT_RDWR);
    closesocket(Sock); 
    
+  OS_TaskExit();
 } /* IperfClient */
 
 /*************************************************************************/
