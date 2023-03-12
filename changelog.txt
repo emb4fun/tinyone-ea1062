@@ -2,7 +2,7 @@
 * Project: tinyone-ea1062
 * Name   : "A small embedded DHCP and SNTP server"
 * Target : Embedded Artists "iMX RT1062 Developer's Kit"
-* Version: 20230104
+* Version: 20230311
 ***************************************************************************
 * Tools  : SEGGER Embedded Studio for ARM v7.12
 *          NXP MIMXRT1062 CPU Support Package v2.06
