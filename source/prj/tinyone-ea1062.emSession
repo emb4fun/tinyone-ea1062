@@ -5,9 +5,7 @@
   <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
  </Breakpoints>
  <ExecutionProfileWindow/>
- <FrameBufferWindow>
-  <FrameBufferWindow bufferHeight="-1" addressSpace="" addressText="" bufferWidth="-1"/>
- </FrameBufferWindow>
+ <FrameBuffer/>
  <Memory1>
   <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" viewType="4" addressOrder="0" columnsText="" refreshPeriod="0" name="tinyone-ea1062_SDRAM Debug" sizeText="" addressText=""/>
   <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" viewType="4" addressOrder="0" columnsText="" refreshPeriod="0" name="tinyone-ea1062_SDRAM Release" sizeText="" addressText=""/>
@@ -67,5 +65,5 @@
  <Files>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="602" useTextEdit="1" path="../src/main.c" left="0" selected="1" top="576" codecName="Default"/>
  </Files>
- <EMStudioWindow activeProject="tinyone-ea1062" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="SDRAM Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Projekte/GitHub/tinyone-ea1062/source/common/library/base32" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <EMStudioWindow activeProject="tinyone-ea1062" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="SDRAM Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Projekte/GitHub/tinyone-ea1062/source/common/library/base32" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>
