@@ -2,13 +2,16 @@
 * Project: tinyone-ea1062
 * Name   : "A small embedded DHCP and SNTP server"
 * Target : Embedded Artists "iMX RT1062 Developer's Kit"
-* Version: 20230919
+* Version: 20230926
 ***************************************************************************
 * Tools  : SEGGER Embedded Studio for ARM v7.32
 *          NXP MIMXRT1062 CPU Support Package v2.06
 ***************************************************************************
 * URL    : https://www.emb4fun.de/projects/tone/index.html
 ***************************************************************************
+
+= 26.09.2023
+   * New lwIP version STABLE-2_2_0_RELEASE used.
 
 = 19.09.2023
    * Updated MbedTLS to v2.28.4
