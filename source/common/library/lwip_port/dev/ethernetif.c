@@ -268,6 +268,8 @@ static void enet_phy_init (struct _phy_handle *phyHandle)
    
    phy_config_t phyConfig = {
       .phyAddr = phyHandle->phyAddr,
+      .resource = phyHandle->resource,
+      .ops      = phyHandle->ops,
       .autoNeg = true,
    };
 
@@ -304,10 +306,12 @@ static void enet_init (struct netif *netif)
 
    /* 
     * @@MF: No link detection here, will be done later by CheclLink.
-    * Set default speed and mode 
+    * Set default speed, mode and callback.
     */
    config.miiSpeed  = kPHY_Speed100M;
    config.miiDuplex = kPHY_FullDuplex;
+   config.callback  = ethernet_callback;
+   config.userData  = netif;
 
    /*
     * Configure the interrupts
@@ -323,8 +327,6 @@ static void enet_init (struct netif *netif)
    /* Initialize the ENET module.*/
    sysClock = CLOCK_GetFreq(kCLOCK_IpgClk);
    ENET_Init(ethernetif->base, &ethernetif->handle, &config, &buffCfg, netif->hwaddr, sysClock);
-
-   ENET_SetCallback(&ethernetif->handle, ethernet_callback, netif);
 
    ENET_ActiveRead(ethernetif->base);
    

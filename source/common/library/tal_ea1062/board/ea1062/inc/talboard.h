@@ -67,8 +67,19 @@
  * In case of uC/OS-III, use a priority greater or equal 
  * CPU_CFG_KA_IPL_BOUNDARY.
  *
+ * In case of FreeRTOS,  use a priority greater or equal 
+ * configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY.
+ *
  * SYSTICK_PRIO should be the highest priority.
  */
+#if defined(RTOS_UCOS3)
+#define SYSTICK_PRIO       CPU_CFG_KA_IPL_BOUNDARY
+#endif
+
+#if defined(RTOS_FREERTOS)
+#define SYSTICK_PRIO       configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
+#endif
+
 
 #ifndef SYSTICK_PRIO
 #define SYSTICK_PRIO       0

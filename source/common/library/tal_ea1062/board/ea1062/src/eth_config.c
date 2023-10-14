@@ -53,7 +53,8 @@
 #include "fsl_iomuxc.h"
 #include "fsl_gpio.h"
 #include "fsl_phy.h"
-#include "mdio\enet\fsl_enet_mdio.h"
+#include "fsl_enet.h"
+
 #include "device\phyksz8081\fsl_phyksz8081.h"
 
 #if !defined(FSL_FEATURE_PHYKSZ8081_USE_RMII50M_MODE)
@@ -72,8 +73,8 @@
 /*  Definition of all local Data                                         */
 /*=======================================================================*/
 
+static phy_ksz8081_resource_t phyksz8081_resource;
 static struct _phy_handle  phyHandle;
-static struct _mdio_handle mdioHandle;
 
 /*=======================================================================*/
 /*  Definition of all local Procedures                                   */
@@ -276,6 +277,23 @@ static void enet1_pin_mux (void)
 
 } /* enet1_pin_mux */
 
+
+static void MDIO0_Init(void)
+{
+   (void)CLOCK_EnableClock(s_enetClock[ENET_GetInstance(ENET)]);
+   ENET_SetSMI(ENET, CLOCK_GetFreq(kCLOCK_IpgClk), false);
+}
+
+static status_t MDIO0_Write(uint8_t phyAddr, uint8_t regAddr, uint16_t data)
+{
+   return ENET_MDIOWrite(ENET, phyAddr, regAddr, data);
+}
+
+static status_t MDIO0_Read(uint8_t phyAddr, uint8_t regAddr, uint16_t *pData)
+{
+   return ENET_MDIORead(ENET, phyAddr, regAddr, pData);
+}
+
 /*=======================================================================*/
 /*  All code exported                                                    */
 /*=======================================================================*/
@@ -324,12 +342,13 @@ struct _phy_handle *BoardGetPhyHandle (int iface)
    
    if (0 == iface)
    {
-      mdioHandle.ops                  = &enet_ops;
-      mdioHandle.resource.base        = ENET;
-      mdioHandle.resource.csrClock_Hz = CLOCK_GetFreq(kCLOCK_IpgClk);
+      MDIO0_Init();
+
+      phyksz8081_resource.write = MDIO0_Write;
+      phyksz8081_resource.read  = MDIO0_Read;
    
       phyHandle.phyAddr    = 2;
-      phyHandle.mdioHandle = &mdioHandle;
+      phyHandle.resource = &phyksz8081_resource;
       phyHandle.ops        = &phyksz8081_ops;
    
       pHandle = &phyHandle;

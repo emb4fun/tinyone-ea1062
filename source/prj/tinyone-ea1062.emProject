@@ -31,7 +31,7 @@
       build_intermediate_directory="$(Configuration)"
       build_output_directory="$(Configuration)"
       c_preprocessor_definitions="INITIALIZE_STACK;CPU_MIMXRT1062CVL5A;MIMXRT1062xxxxx;__MIMXRT1062_FAMILY;ARM_MATH_CM7;USE_BOARD_EA1062;RTOS_TCTS;NO_GZIP;SKIP_SYSCLK_INIT;FSL_SDK_ENABLE_DRIVER_CACHE_CONTROL=1;FSL_FEATURE_PHYKSZ8081_USE_RMII50M_MODE;SD_ENABLED"
-      c_user_include_directories="..\\incprj;..\\common\\inc;..\\common\\library\\tcts\\inc;..\\common\\library\\tal_ea1062\\board\\ea1062\\inc;..\\common\\library\\tal_ea1062\\core\\inc;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\cmsis\\core;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\cmsis\\device;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\drivers;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\inc;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\components\\lists;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\components\\osa;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\components\\gpio;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\components\\phy;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\middleware\\sdmmc\\common;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\middleware\\sdmmc\\host\\usdhc;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\middleware\\sdmmc\\osa;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2121\\middleware\\sdmmc\\sd;..\\common\\library\\ipapi\\inc;..\\common\\library\\ipapi\\phy;..\\common\\library\\ipweb\\inc;..\\common\\library\\jsmn;..\\common\\library\\lwip\\src\\include;..\\common\\library\\lwip\\src\\include\\ipv4;..\\common\\library\\lwip_port\\dev;..\\common\\library\\lwip_port\\os;..\\common\\library\\uhttp\\inc;..\\common\\library\\uhttp\\addon\\inc;..\\common\\library\\fsapi\\inc;..\\common\\library\\fatfs\\src;..\\common\\library\\tlsf\\v246\\src;..\\common\\library\\adler32;..\\common\\library\\base32;..\\common\\library\\minini\\dev;..\\common\\library\\mbedtls\\include;..\\common\\library\\zlib;..\\inc"
+      c_user_include_directories="..\\incprj;..\\common\\inc;..\\common\\library\\tcts\\inc;..\\common\\library\\tal_ea1062\\board\\ea1062\\inc;..\\common\\library\\tal_ea1062\\core\\inc;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\cmsis\\core;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\cmsis\\device;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\drivers;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\inc;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\components\\lists;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\components\\osa;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\components\\gpio;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\components\\phy;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\middleware\\sdmmc\\common;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\middleware\\sdmmc\\host\\usdhc;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\middleware\\sdmmc\\osa;..\\common\\library\\tal_ea1062\\cpu\\nxp\\imxrt1060\\sdk\\v2140\\middleware\\sdmmc\\sd;..\\common\\library\\ipapi\\inc;..\\common\\library\\ipapi\\phy;..\\common\\library\\ipweb\\inc;..\\common\\library\\jsmn;..\\common\\library\\lwip\\src\\include;..\\common\\library\\lwip\\src\\include\\ipv4;..\\common\\library\\lwip_port\\dev;..\\common\\library\\lwip_port\\os;..\\common\\library\\uhttp\\inc;..\\common\\library\\uhttp\\addon\\inc;..\\common\\library\\fsapi\\inc;..\\common\\library\\fatfs\\src;..\\common\\library\\tlsf\\v246\\src;..\\common\\library\\adler32;..\\common\\library\\base32;..\\common\\library\\minini\\dev;..\\common\\library\\mbedtls\\include;..\\common\\library\\zlib;..\\inc"
       debug_register_definition_file="$(ProjectDir)/MIMXRT1062_Registers.xml"
       debug_target_connection="J-Link"
       gcc_entry_point="reset_handler"
@@ -238,7 +238,7 @@
             <folder Name="cpu">
               <folder Name="sdk">
                 <folder Name="cmsis">
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/cmsis/device/system_MIMXRT1062.c">
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/cmsis/device/system_MIMXRT1062.c">
                     <configuration
                       Name="Common"
                       default_code_section=".init"
@@ -247,40 +247,39 @@
                 </folder>
                 <folder Name="components">
                   <folder Name="gpio">
-                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/components/gpio/fsl_adapter_igpio.c" />
+                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/components/gpio/fsl_adapter_igpio.c" />
                   </folder>
                   <folder Name="phy">
-                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/components/phy/mdio/enet/fsl_enet_mdio.c" />
-                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/components/phy/device/phyksz8081/fsl_phyksz8081.c" />
+                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/components/phy/device/phyksz8081/fsl_phyksz8081.c" />
                   </folder>
                 </folder>
                 <folder Name="drivers">
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_cache.c" />
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_clock.c" />
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_common.c" />
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_enet.c" />
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_gpio.c" />
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_lpi2c.c" />
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_lpuart.c" />
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_trng.c" />
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_usdhc.c" />
-                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/drivers/fsl_wdog.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_cache.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_clock.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_common.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_enet.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_gpio.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_lpi2c.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_lpuart.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_trng.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_usdhc.c" />
+                  <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/drivers/fsl_wdog.c" />
                 </folder>
                 <folder Name="osa_port">
                   <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/osa_port/fsl_os_abstraction_tcts.c" />
                 </folder>
                 <folder Name="sdmmc">
                   <folder Name="common">
-                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/middleware/sdmmc/common/fsl_sdmmc_common.c" />
+                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/middleware/sdmmc/common/fsl_sdmmc_common.c" />
                   </folder>
                   <folder Name="host">
-                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/middleware/sdmmc/host/usdhc/non_blocking/fsl_sdmmc_host.c" />
+                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/middleware/sdmmc/host/usdhc/non_blocking/fsl_sdmmc_host.c" />
                   </folder>
                   <folder Name="osa">
-                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/middleware/sdmmc/osa/fsl_sdmmc_osa.c" />
+                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/middleware/sdmmc/osa/fsl_sdmmc_osa.c" />
                   </folder>
                   <folder Name="sd">
-                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2121/middleware/sdmmc/sd/fsl_sd.c" />
+                    <file file_name="../common/library/tal_ea1062/cpu/nxp/imxrt1060/sdk/v2140/middleware/sdmmc/sd/fsl_sd.c" />
                   </folder>
                 </folder>
               </folder>
