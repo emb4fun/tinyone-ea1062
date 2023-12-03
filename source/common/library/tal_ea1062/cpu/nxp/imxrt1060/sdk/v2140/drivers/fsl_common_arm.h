@@ -511,17 +511,17 @@ extern "C" {
  * @retval kStatus_Success Interrupt enabled successfully
  * @retval kStatus_Fail Failed to enable the interrupt
  */
-static inline status_t EnableIRQ(IRQn_Type interrupt)
+static inline status_t EnableIRQ(IRQn_Type irq)
 {
     status_t status = kStatus_Success;
 
-    if (NotAvail_IRQn == interrupt)
+    if (NotAvail_IRQn == irq)
     {
         status = kStatus_Fail;
     }
 
 #if defined(FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS) && (FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS > 0)
-    else if ((int32_t)interrupt >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
+    else if ((int32_t)irq >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
     {
         status = kStatus_Fail;
     }
@@ -530,9 +530,9 @@ static inline status_t EnableIRQ(IRQn_Type interrupt)
     else
     {
 #if defined(__GIC_PRIO_BITS)
-        GIC_EnableIRQ(interrupt);
+        GIC_EnableIRQ(irq);
 #else
-        NVIC_EnableIRQ(interrupt);
+        NVIC_EnableIRQ(irq);
 #endif
     }
 
@@ -555,17 +555,17 @@ static inline status_t EnableIRQ(IRQn_Type interrupt)
  * @retval kStatus_Success Interrupt disabled successfully
  * @retval kStatus_Fail Failed to disable the interrupt
  */
-static inline status_t DisableIRQ(IRQn_Type interrupt)
+static inline status_t DisableIRQ(IRQn_Type irq)
 {
     status_t status = kStatus_Success;
 
-    if (NotAvail_IRQn == interrupt)
+    if (NotAvail_IRQn == irq)
     {
         status = kStatus_Fail;
     }
 
 #if defined(FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS) && (FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS > 0)
-    else if ((int32_t)interrupt >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
+    else if ((int32_t)irq >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
     {
         status = kStatus_Fail;
     }
@@ -574,9 +574,9 @@ static inline status_t DisableIRQ(IRQn_Type interrupt)
     else
     {
 #if defined(__GIC_PRIO_BITS)
-        GIC_DisableIRQ(interrupt);
+        GIC_DisableIRQ(irq);
 #else
-        NVIC_DisableIRQ(interrupt);
+        NVIC_DisableIRQ(irq);
 #endif
     }
 
@@ -600,17 +600,17 @@ static inline status_t DisableIRQ(IRQn_Type interrupt)
  * @retval kStatus_Success Interrupt priority set successfully
  * @retval kStatus_Fail Failed to set the interrupt priority.
  */
-static inline status_t EnableIRQWithPriority(IRQn_Type interrupt, uint8_t priNum)
+static inline status_t EnableIRQWithPriority(IRQn_Type irq, uint8_t priNum)
 {
     status_t status = kStatus_Success;
 
-    if (NotAvail_IRQn == interrupt)
+    if (NotAvail_IRQn == irq)
     {
         status = kStatus_Fail;
     }
 
 #if defined(FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS) && (FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS > 0)
-    else if ((int32_t)interrupt >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
+    else if ((int32_t)irq >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
     {
         status = kStatus_Fail;
     }
@@ -619,11 +619,11 @@ static inline status_t EnableIRQWithPriority(IRQn_Type interrupt, uint8_t priNum
     else
     {
 #if defined(__GIC_PRIO_BITS)
-        GIC_SetPriority(interrupt, priNum);
-        GIC_EnableIRQ(interrupt);
+        GIC_SetPriority(irq, priNum);
+        GIC_EnableIRQ(irq);
 #else
-        NVIC_SetPriority(interrupt, priNum);
-        NVIC_EnableIRQ(interrupt);
+        NVIC_SetPriority(irq, priNum);
+        NVIC_EnableIRQ(irq);
 #endif
     }
 
@@ -648,17 +648,17 @@ static inline status_t EnableIRQWithPriority(IRQn_Type interrupt, uint8_t priNum
  * @retval kStatus_Success Interrupt priority set successfully
  * @retval kStatus_Fail Failed to set the interrupt priority.
  */
-static inline status_t IRQ_SetPriority(IRQn_Type interrupt, uint8_t priNum)
+static inline status_t IRQ_SetPriority(IRQn_Type irq, uint8_t priNum)
 {
     status_t status = kStatus_Success;
 
-    if (NotAvail_IRQn == interrupt)
+    if (NotAvail_IRQn == irq)
     {
         status = kStatus_Fail;
     }
 
 #if defined(FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS) && (FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS > 0)
-    else if ((int32_t)interrupt >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
+    else if ((int32_t)irq >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
     {
         status = kStatus_Fail;
     }
@@ -667,9 +667,9 @@ static inline status_t IRQ_SetPriority(IRQn_Type interrupt, uint8_t priNum)
     else
     {
 #if defined(__GIC_PRIO_BITS)
-        GIC_SetPriority(interrupt, priNum);
+        GIC_SetPriority(irq, priNum);
 #else
-        NVIC_SetPriority(interrupt, priNum);
+        NVIC_SetPriority(irq, priNum);
 #endif
     }
 
@@ -693,17 +693,17 @@ static inline status_t IRQ_SetPriority(IRQn_Type interrupt, uint8_t priNum)
  * @retval kStatus_Success Interrupt priority set successfully
  * @retval kStatus_Fail Failed to set the interrupt priority.
  */
-static inline status_t IRQ_ClearPendingIRQ(IRQn_Type interrupt)
+static inline status_t IRQ_ClearPendingIRQ(IRQn_Type irq)
 {
     status_t status = kStatus_Success;
 
-    if (NotAvail_IRQn == interrupt)
+    if (NotAvail_IRQn == irq)
     {
         status = kStatus_Fail;
     }
 
 #if defined(FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS) && (FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS > 0)
-    else if ((int32_t)interrupt >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
+    else if ((int32_t)irq >= (int32_t)FSL_FEATURE_NUMBER_OF_LEVEL1_INT_VECTORS)
     {
         status = kStatus_Fail;
     }
@@ -712,9 +712,9 @@ static inline status_t IRQ_ClearPendingIRQ(IRQn_Type interrupt)
     else
     {
 #if defined(__GIC_PRIO_BITS)
-        GIC_ClearPendingIRQ(interrupt);
+        GIC_ClearPendingIRQ(irq);
 #else
-        NVIC_ClearPendingIRQ(interrupt);
+        NVIC_ClearPendingIRQ(irq);
 #endif
     }
 

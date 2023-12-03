@@ -329,6 +329,7 @@
         </folder>
         <folder Name="src">
           <file file_name="../common/src/cert.c" />
+          <file file_name="../common/src/elca_client.c" />
           <file file_name="../common/src/etc.c" />
           <file file_name="../common/src/fs.c" />
           <file file_name="../common/src/iperf.c" />
@@ -342,7 +343,6 @@
         </folder>
       </folder>
       <folder Name="src">
-        <file file_name="../src/elca_client.c" />
         <file file_name="../src/main.c" />
         <file file_name="../src/xmempool.c" />
       </folder>

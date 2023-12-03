@@ -1,5 +1,5 @@
 /**************************************************************************
-*  Copyright (c) 2020-2022 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2020-2023 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -539,6 +539,7 @@ static void StartTask (void *p)
     * The web server must be initialized before all other web services
     */   
    IP_WEBS_Init();        /* Initialize the web server */
+   IP_ELCAC_Init();       /* Initialize the ELCA system */
 
    IP_DHCP_ServerInit();  /* Initialize the DHCP server */
    IP_SNTP_ServerInit();  /* Initialize the SNTP server */

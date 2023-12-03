@@ -22,6 +22,7 @@
     <ProgramSection alignment="4"     load="Yes" name=".tdata" />
     <ProgramSection alignment="4"     load="No"  name=".bss" />
     <ProgramSection alignment="4"     load="No"  name=".non_init" />
+    <ProgramSection alignment="4"     load="No"  name=".task_stack" />
     <ProgramSection alignment="4"     load="No"  name=".heap" size="__HEAPSIZE__" />
   </MemorySegment>
   <MemorySegment name="NonCache">

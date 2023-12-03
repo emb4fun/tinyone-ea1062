@@ -1,5 +1,5 @@
 /**************************************************************************
-*  Copyright (c) 2020-2022 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2020-2023 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -48,7 +48,7 @@
 #define PROJECT_NAME_LONG     "TinyONE Server"
 
 #define PROJECT_VER_MAJOR     1
-#define PROJECT_VER_MINOR_1   1
+#define PROJECT_VER_MINOR_1   2
 #define PROJECT_VER_MINOR_2   0
 
 #define PROJECT_VER_NUMBER    ((PROJECT_VER_MAJOR * 100) + (PROJECT_VER_MINOR_1 * 10) + PROJECT_VER_MINOR_2)
@@ -144,6 +144,13 @@
  * TERM_COM_PORT is defined in talboard.h
  */
 #define TERM_COM_SPEED        115200 
+
+
+/*-----------------------------------------------------------------------*/
+/* lwIP and other project specific                                       */
+/*-----------------------------------------------------------------------*/
+//#define PRJ_LWIP_IPV6                  1
+//#define USE_IP_DEFAULT_MAC_ADDR
 
 
 /**************************************************************************

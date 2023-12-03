@@ -1,5 +1,5 @@
 /**************************************************************************
-*  Copyright (c) 2021-2022 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2022-2023 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -53,6 +53,7 @@ typedef void (*ip_elcac_cb_ready_t)(int nError);
 *  Functions Definitions
 **************************************************************************/
 
+void  IP_ELCAC_Init (void);
 void  IP_ELCAC_Start (ip_elcac_cb_ready_t callback);
 
 char *IP_ELCAC_KeyGet (void);

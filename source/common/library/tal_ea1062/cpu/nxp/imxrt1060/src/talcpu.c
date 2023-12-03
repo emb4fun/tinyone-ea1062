@@ -42,8 +42,6 @@
 
 #include "clock_config.h"
 
-//#include "fsl_common.h"
-#include "fsl_cache.h"
 #include "fsl_trng.h"
 #include "fsl_iomuxc.h"
 #include "fsl_wdog.h"
@@ -192,6 +190,7 @@ void tal_CPUSysTickStart (void)
    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 } /* tal_CPUSysTickStart */
 
+#if 0
 /*************************************************************************/
 /*  tal_CPUStatDWTInit                                                   */
 /*                                                                       */
@@ -226,6 +225,7 @@ uint32_t tal_CPUStatDWTGetCnt (void)
    /* Return the clock cycle counter */
    return(DWT->CYCCNT);
 } /* tal_CPUStatDWTGetCnt */
+#endif
 
 /*************************************************************************/
 /*  tal_CPUIrqEnable                                                     */
@@ -502,6 +502,12 @@ void SysTick_Handler (void)
    OS_TimerCallback();
    
    TAL_CPU_IRQ_EXIT();
+
+/* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F, Cortex-M7, Cortex-M7F Store immediate overlapping
+  exception return operation might vector to incorrect interrupt */
+#if defined __CORTEX_M && (__CORTEX_M == 4U || __CORTEX_M == 7U)
+   __DSB();
+#endif
 } /* SysTick_Handler */
 
 /*** EOF ***/

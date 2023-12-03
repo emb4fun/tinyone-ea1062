@@ -1,5 +1,5 @@
 /**************************************************************************
-*  Copyright (c) 2021-2022 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2021-2023 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -39,10 +39,13 @@
 #include "tal.h"
 #include "terminal.h"
 #include "ipstack.h"
+#include "ipweb.h"
+#include "cert.h"
 #include "ip_tnp.h"
 #include "elca_client.h"
 
 #include "mbedtls/platform.h"
+#include "mbedtls/base64.h"
 #include "mbedtls/pkcs5.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/entropy.h"
@@ -51,6 +54,7 @@
 #include "mbedtls/oid.h"
 #include "mbedtls/x509.h"
 #include "mbedtls/x509_csr.h"
+#include "mbedtls/x509_crt.h"
 
 /*lint -save -e801*/
 
@@ -58,12 +62,49 @@
 /*  All Structures and Common Constants                                  */
 /*=======================================================================*/
 
-#define SUBJECT_NAME    "CN=tiny%s.local,OU=ExampleTrust Devices,O=ExampleTrust,C=DE"
+#define ELCA_OK               0  
+#define ELCA_ERR_USER_PASS    -1
+#define ELCA_ERR_BLOCKED      -2
+/* The lines above must not changes */
+#define ELCA_ERR              -3
+#define ELCA_ERR_KEY          -4
+#define ELCA_ERR_CRT          -5
+#define ELCA_ERR_CRT_CHECK_1  -6
+#define ELCA_ERR_CRT_CHECK_2  -7
+#define ELCA_ERR_CRT_CHECK_3  -8
+#define ELCA_ERR_CRT_CHECK_4  -9
+#define ELCA_ERR_CRT_CHECK_5  -10
+#define ELCA_ERR_CRT_WRITE    -11
+#define ELCA_ERR_CRT_SIZE     -12
+
+#define ELCA_ERR_CRT_SUBJECT  -20
+#define ELCA_ERR_CRT_ISSUER   -21
+#define ELCA_ERR_CRT_CN       -22
+#define ELCA_ERR_CRT_O        -23
+#define ELCA_ERR_CRT_OU       -24
+#define ELCA_ERR_CRT_C        -25
+#define ELCA_ERR_CRT_AN       -26
+#define ELCA_ERR_CRT_IC       -27
+#define ELCA_ERR_CRT_IO       -28
+#define ELCA_ERR_CRT_ICN      -29
+#define ELCA_ERR_CRT_S        -30
+
+
+#define CSR_OU          "ExampleTrust Devices" 
+#define CSR_O           "ExampleTrust" 
+#define CSR_C           "DE"
+#define CSR_IP          "192.168.1.200" 
+
+//#define SUBJECT_NAME    "CN=tiny%s.local,OU=ExampleTrust Devices,O=ExampleTrust,C=DE"
+#define SUBJECT_NAME    "CN=tiny%s.local,OU="CSR_OU",O="CSR_O",C="CSR_C
 
 #define ALT_NAME        "tiny.local"
 #define ALT_NAME_MAC    "tiny%s.local"
 
+#if !defined(PRE_SHARED_KEY)
+/* This is only an example, use your own PSK */
 #define PRE_SHARED_KEY  "UseyourownPSK"
+#endif
 
 /*************************************************************************/
 
@@ -82,6 +123,44 @@
 #define KEY_SIZE        1024
 #define CSR_SIZE        1024
 #define CRT_SIZE        1024
+
+
+typedef struct _oid_an_
+{
+   uint8_t  OID[3];
+   uint8_t  OIDType;
+   uint8_t  OIDLen;
+   uint8_t  DataType;
+   uint8_t  DataLen;
+   uint8_t  Data;
+} OID_AN;
+
+typedef struct _cert_info_
+{
+   char CN[256];
+   char AN[256];
+   char O[256];
+   char OU[256];
+   char C[256];
+   char vf[256];
+   char vt[256];
+   
+   char ICN[256];
+   char IO[256];
+   char IC[256];
+   char I[256];
+   
+   char S[256];
+} CERT_INFO;
+
+typedef struct _san_tag_
+{
+   uint8_t  tag;
+   size_t   hostlen;
+   char    *host;
+   uint32_t address;
+} SAN_TAG;
+
 
 /*=======================================================================*/
 /*  Definition of all global Data                                        */
@@ -114,7 +193,23 @@ static char CRTData[CRT_SIZE];
 static char InterData[CRT_SIZE];
 
 static ip_elcac_cb_ready_t ReadyCB = NULL;
-static int  Ready = 0;             
+static int  Ready = 0;  
+
+static char CSR_CN[256];    
+static char CSR_AN[256];  
+
+
+static char Month[12][4] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+static mbedtls_x509_crt chaincert;
+
+static char NewCRT[2048];
+static CERT_INFO NewCRTSrv;
+static CERT_INFO NewCRTInt;
+
+static int nUpdateStartDone = 0;
+static int nUpdateResult    = 1;
 
 /*=======================================================================*/
 /*  Definition of all local Procedures                                   */
@@ -241,6 +336,363 @@ static int set_basic_constraints (mbedtls_x509write_csr *ctx,
 /*lint -restore*/
 
 /*************************************************************************/
+/*  JSONSendError                                                        */
+/*                                                                       */
+/*  In    : hs, nError, pMsg                                             */
+/*  Out   : none                                                         */
+/*  Return: none                                                         */
+/*************************************************************************/
+static void JSONSendError (HTTPD_SESSION *hs, int nError)
+{
+   s_puts("{", hs->s_stream);
+   
+   if (0 == nError)
+   {
+      s_puts("\"err\":0,\"msg\":\"none\"", hs->s_stream);
+   }
+   else
+   {
+      s_printf(hs->s_stream, "\"err\":%d,\"msg\":\"error\"", nError);
+   }
+
+   s_puts("}", hs->s_stream);
+   s_flush(hs->s_stream);
+
+} /* JSONSendError */
+
+
+/*************************************************************************/
+/*  ConvertTextarea                                                      */
+/*                                                                       */
+/*  Converting the textarea data by replacing the two characters "\n"    */
+/*  by 0x0D 0x0A.                                                        */
+/*                                                                       */
+/*  In    : pData                                                        */
+/*  Out   : pData                                                        */
+/*  Return: none                                                         */
+/*************************************************************************/
+static void ConvertTextarea (char *pData)
+{
+   pData = strstr(pData, "\\n");
+   while (pData != NULL)
+   {
+      pData[0] = 0x0D;
+      pData[1] = 0x0A;
+      pData += 2;
+      pData = strstr(pData, "\\n");
+   }
+
+} /* ConvertTextarea */
+
+/*************************************************************************/
+/*  GetSubjectTag                                                        */
+/*                                                                       */
+/*  Find "Alternative Names".                                            */
+/*                                                                       */
+/*  In    : pSubject, pTag, pBuffer, Size                                */
+/*  Out   : pBuffer                                                      */
+/*  Return: 0 = OK / -1 = ERROR                                          */
+/*************************************************************************/
+static int GetSubjectTag (char *pSubject, char *pTag, char *pBuffer, size_t BufferSize)
+{
+   int     rc = ELCA_ERR;
+   size_t  Size;
+   char   *p;
+   
+   memset(pBuffer, 0x00, BufferSize);
+
+   p = strstr(pSubject, pTag);
+   if (p != NULL)
+   {
+      p += strlen(pTag);
+      Size = 0;
+      while ((*p != ',') && (Size < BufferSize))
+      {
+         pBuffer[Size++] = *p++;
+      }
+      rc = ELCA_OK;
+   }      
+   
+   return(rc);
+} /* GetSubjectTag */
+
+/*************************************************************************/
+/*  GetANStr                                                             */
+/*                                                                       */
+/*  Find "Alternative Names".                                            */
+/*                                                                       */
+/*  In    : pData, DataSize, pBuffer, BufferSize                         */
+/*  Out   : pBuffer                                                      */
+/*  Return: 0 = OK / -1 = ERROR                                          */
+/*************************************************************************/
+static int GetANStr (uint8_t *pData, size_t DataSize, char *pBuffer, size_t BufferSize)
+{
+   int        rc = ELCA_ERR_CRT_AN;
+   int        DataLen;
+   uint8_t    Len;
+   size_t     x;
+   uint8_t   *p = NULL;
+   OID_AN    *pAN;
+   static char Tmp[256];
+   
+   memset(pBuffer, 0x00, sizeof(BufferSize));
+   
+   for (x = 0; x < DataSize; x++)
+   {
+      if( (0x55 == pData[x + 0]) && 
+          (0x1D == pData[x + 1]) && 
+          (0x11 == pData[x + 2]) && 
+          (0x04 == pData[x + 3]) ) 
+      {
+         p = &pData[x];
+         break;
+      }          
+   }
+   
+   if (p != NULL)
+   {
+      rc = ELCA_OK;
+      
+      /*lint -save -e527 -e661 -e662 -e826*/
+   
+      pAN = (OID_AN*)p;
+      
+      (void)pAN->OID;      /* Prevent lint warning */
+      (void)pAN->OIDType;
+      (void)pAN->OIDLen;   
+      (void)pAN->DataType;
+      
+      DataLen = pAN->DataLen;
+      pData   = &pAN->Data;
+      while ((DataLen > 0) && (strlen(pBuffer) < BufferSize))
+      {
+         switch (*pData++)
+         {
+            case 0x82:  /* DNS: Copy string */
+            {
+               Len = *pData++;
+               strncpy(Tmp, (char*)pData, Len);
+               Tmp[Len] = 0;
+               pData += Len;
+               
+               DataLen -= 2;
+               DataLen -= (int)Len;
+               
+               if ((strlen(pBuffer) + Len + 1) < BufferSize)
+               {
+                  strcat(pBuffer, Tmp);
+                  strcat(pBuffer, " ");
+               }
+               else
+               {
+                  GOTO_END(ELCA_ERR_CRT_AN);
+               }   
+               break;
+            }
+            case 0x87:  /* IP: Copy string */
+            {
+               Len = *pData++;
+               snprintf(Tmp, sizeof(Tmp), "%d.%d.%d.%d ", 
+                        pData[0], pData[1], pData[2], pData[3]);
+               pData += Len;                        
+
+               DataLen -= 2;
+               DataLen -= Len;
+
+               if ((strlen(pBuffer) + strlen(Tmp) + 1) < BufferSize)
+               {
+                  strcat(pBuffer, Tmp);
+               }
+               else
+               {
+                  GOTO_END(ELCA_ERR_CRT_AN);
+               }   
+               break;               
+            }
+            default:
+            {
+               GOTO_END(ELCA_ERR_CRT_AN);
+               break;
+            }
+         }
+      }
+      /*lint -restore*/
+      
+      /* Remove space from the end of the string */
+      DataLen = (int)strlen(pBuffer);
+      if (' ' == pBuffer[DataLen-1])
+      {
+         pBuffer[DataLen-1] = 0;
+      }
+   }
+   
+end:   
+   
+   return(rc);
+} /* GetANStr */
+
+/*************************************************************************/
+/*  CRTDecode                                                            */
+/*                                                                       */
+/*  In    : pCRT                                                         */ 
+/*  Out   : none                                                         */
+/*  Return: 0 on success / -1 otherwise                                  */
+/*************************************************************************/
+static int CRTDecode (mbedtls_x509_crt *pCRT, CERT_INFO *pInfo)
+{
+   int         rc = 0;
+   static char subject_name[256];
+   static char issuer_name[256];
+   
+   memset(pInfo, 0x00, sizeof(CERT_INFO));
+
+   rc = mbedtls_x509_dn_gets(subject_name, sizeof(subject_name), &pCRT->subject);
+   if (rc < 0) GOTO_END(ELCA_ERR_CRT_SUBJECT);
+   
+   rc = mbedtls_x509_dn_gets(issuer_name, sizeof(issuer_name), &pCRT->issuer);
+   if (rc < 0) GOTO_END(ELCA_ERR_CRT_ISSUER);
+
+   /* Find "Common Name" */
+   rc = GetSubjectTag(subject_name, "CN=", pInfo->CN, sizeof(pInfo->CN));
+   if (rc != 0) GOTO_END(ELCA_ERR_CRT_CN);
+
+   /* Find "Organization" */
+   rc = GetSubjectTag(subject_name, "O=", pInfo->O, sizeof(pInfo->O));
+   if (rc != 0) GOTO_END(ELCA_ERR_CRT_O);
+
+   /* Find "Organization Unit" */
+   rc = GetSubjectTag(subject_name, "OU=", pInfo->OU, sizeof(pInfo->OU));
+   if (rc != 0) pInfo->OU[0] = 0;
+
+   /* Find "Country" */
+   rc = GetSubjectTag(subject_name, "C=", pInfo->C, sizeof(pInfo->C));
+   if (rc != 0) GOTO_END(ELCA_ERR_CRT_C);
+
+   /* Special check for "Alternative Names" */
+   rc = GetANStr(pCRT->raw.p, pCRT->raw.len, pInfo->AN, sizeof(pInfo->AN));
+   if (rc != 0) pInfo->AN[0] = 0;
+
+   /* Find "Issuer Country" */
+   rc = GetSubjectTag(issuer_name, "C=", pInfo->IC, sizeof(pInfo->IC));
+   if (rc != 0) GOTO_END(ELCA_ERR_CRT_IC);
+
+   /* Find "Issuer Organization" */
+   rc = GetSubjectTag(issuer_name, "O=", pInfo->IO, sizeof(pInfo->IO));
+   if (rc != 0) GOTO_END(ELCA_ERR_CRT_IO);
+   
+   /* Find "Issuer Common Name" */
+   rc = GetSubjectTag(issuer_name, "CN=", pInfo->ICN, sizeof(pInfo->ICN));
+   if (rc != 0) GOTO_END(ELCA_ERR_CRT_ICN);
+   snprintf(pInfo->I, sizeof(pInfo->I), "%s, %s, %s", pInfo->ICN, pInfo->IO, pInfo->IC);
+
+   /* Not before */
+   snprintf(pInfo->vf, sizeof(pInfo->vf), "%s %2d %02d:%02d:%02d %04d GMT", 
+            Month[pCRT->valid_from.mon-1], pCRT->valid_from.day,
+            pCRT->valid_from.hour, pCRT->valid_from.min, pCRT->valid_from.sec, 
+            pCRT->valid_from.year);
+
+   /* Not after */
+   snprintf(pInfo->vt, sizeof(pInfo->vt), "%s %2d %02d:%02d:%02d %04d GMT", 
+            Month[pCRT->valid_to.mon-1], pCRT->valid_to.day,
+            pCRT->valid_to.hour, pCRT->valid_to.min, pCRT->valid_to.sec, 
+            pCRT->valid_to.year);
+
+   /* Serial number */   
+   rc = mbedtls_x509_serial_gets(pInfo->S, sizeof(pInfo->S), &pCRT->serial);
+   if (rc < 0) GOTO_END(ELCA_ERR_CRT_S);
+   
+   rc = ELCA_OK;
+
+end:
+   
+   return(rc);
+} /* CRTDecode */
+
+/*************************************************************************/
+/*  CheckNewChainCRT                                                     */
+/*                                                                       */
+/*  In    : pCRT                                                         */ 
+/*  Out   : none                                                         */
+/*  Return: 0 on success / -1 otherwise                                  */
+/*************************************************************************/
+static int CheckNewChainCRT (char *pCRT)
+{
+   int                rc  = ELCA_ERR_CRT_CHECK_1;
+   size_t             len = strlen(pCRT);
+   char             *pStart;
+   char             *pEnd;
+   mbedtls_x509_crt *pCRT1;
+   mbedtls_x509_crt *pCRT2;
+
+   mbedtls_x509_crt_init(&chaincert);
+
+   /*
+    * Check if two CRTs are available
+    */
+
+   /* Search first "END" */
+   pStart = pCRT;
+   pEnd   = strstr(pCRT, "-----END CERTIFICATE-----");
+   if (pEnd != NULL)
+   {
+      pEnd += strlen("-----END CERTIFICATE-----");
+      if ((pEnd - pStart) < len) 
+      {
+         /* Search second "END" */
+         pStart = pEnd;
+         pEnd   = strstr(pStart, "-----END CERTIFICATE-----");
+         if (pEnd != NULL)
+         {
+            pEnd += strlen("-----END CERTIFICATE-----");
+            *pEnd = 0;
+
+            rc = 0;
+         }
+      }
+   }
+   if (rc != 0) GOTO_END(ELCA_ERR_CRT_CHECK_1);
+
+   /* 
+    * Check valid CRTs
+    */
+   rc = mbedtls_x509_crt_parse(&chaincert, (const unsigned char *) pCRT, strlen(pCRT) + 1);
+   if (rc != 0) GOTO_END(ELCA_ERR_CRT_CHECK_2);
+
+   pCRT1 = &chaincert;
+   pCRT2 = chaincert.next;
+   
+   /* Check if two CRTs are available */
+   if ((NULL == pCRT1) || (NULL == pCRT2)) GOTO_END(ELCA_ERR_CRT_CHECK_3);
+
+   /* Check if first CRT is not a "ca" */
+   if (pCRT1->ca_istrue != 0) GOTO_END(ELCA_ERR_CRT_CHECK_4);
+
+   /* Check if second CRT is a "ca" */
+   if (pCRT2->ca_istrue != 1) GOTO_END(ELCA_ERR_CRT_CHECK_5);
+
+
+   if ((strlen(pCRT)+1) < sizeof(NewCRT))
+   {
+      memcpy(NewCRT, pCRT, strlen(pCRT)+1);
+      rc = CRTDecode(pCRT1, &NewCRTSrv);
+      if (ELCA_OK == rc)
+      {
+         rc = CRTDecode(pCRT2, &NewCRTInt);
+      }
+   }
+   else
+   {  
+      rc = ELCA_ERR_CRT_SIZE;
+   }   
+   
+end:
+
+   mbedtls_x509_crt_free(&chaincert);
+
+   return(rc);
+} /* CheckNewChainCRT */
+
+/*************************************************************************/
 /*  HandleGetReq                                                         */
 /*                                                                       */
 /*  In    : pTxMsg, pRxMsg, dAddress                                     */ 
@@ -290,6 +742,41 @@ static int HandleGetReq (elca_msg_t *pTxMsg, elca_msg_t *pRxMsg, uint32_t dAddre
    
    return(rc);
 } /* HandleGetReq */
+
+/*************************************************************************/
+/*  KeyLoad                                                              */
+/*                                                                       */
+/*  Load the private key.                                                */
+/*                                                                       */
+/*  In    : none                                                         */
+/*  Out   : none                                                         */
+/*  Return: 0 on success / -1 otherwise                                  */
+/*************************************************************************/
+static int KeyLoad (void)
+{
+   int    rc;
+   char  *buf;
+   size_t buflen;
+   const char *pers = "elca";
+         
+   /* Prepare key load */
+   mbedtls_pk_init(&pk);
+   mbedtls_ctr_drbg_init(&ctr_drbg);
+   mbedtls_entropy_init(&entropy);
+
+   rc =  mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                               (const unsigned char *)pers, strlen( pers ));
+   if (rc != 0) GOTO_END(-1);
+
+   /* Load the key */
+   cert_Get_DeviceKey(&buf, &buflen);
+   rc = mbedtls_pk_parse_key(&pk, (const unsigned char *) buf, buflen, NULL, 0);
+   if(rc != 0) GOTO_END(-1);
+
+end:
+
+   return(rc);   
+} /* KeyLoad */
 
 /*************************************************************************/
 /*  KeyCreate                                                            */
@@ -348,6 +835,7 @@ static int CSRCreate (void)
    uint8_t                mac_addr[6];
    char                   mac_str[8];
    static char            name[256];
+   uint32_t               ipaddr = inet_addr(CSR_IP);
    
    /* Get the MAC address */
    IP_IF_MACGet(0, mac_addr, sizeof(mac_addr));
@@ -381,6 +869,7 @@ static int CSRCreate (void)
 
    /* X509v3 Subject Alternative Name */
    snprintf(name, sizeof(name), ALT_NAME_MAC, mac_str);
+   snprintf(CSR_CN, sizeof(CSR_CN), ALT_NAME_MAC, mac_str); 
    
    sanlist[0].node.host    = ALT_NAME;
    sanlist[0].node.hostlen = strlen(sanlist[0].node.host);
@@ -390,8 +879,14 @@ static int CSRCreate (void)
    sanlist[1].node.hostlen = strlen(sanlist[1].node.host);
    sanlist[1].next = NULL;
 
-   rc = mbedtls_x509write_crt_set_subject_alternative_name(&req, &sanlist[0], 0xC801A8C0);
+   rc = mbedtls_x509write_crt_set_subject_alternative_name(&req, &sanlist[0], ipaddr);
    if (rc != 0) GOTO_END(-1);
+   
+   {  
+      char buf[20]; 
+      htoa(ntohl(ipaddr), buf, sizeof(buf));
+      snprintf(CSR_AN, sizeof(CSR_AN), "%s %s %s", CSR_CN, ALT_NAME, buf); 
+   }
 
    /* X509v3 id-kp-serverAuth, see: https://support.apple.com/en-us/HT210176 */
    rc = mbedtls_x509write_csr_set_extension(&req,
@@ -404,6 +899,8 @@ static int CSRCreate (void)
    
    /* Create CSR in PEM format */
    rc = mbedtls_x509write_csr_pem(&req, (unsigned char*)CSRData, sizeof(CSRData), mbedtls_ctr_drbg_random, &ctr_drbg);
+
+//static char CSRAN[256];    
 
 #if 0
    if (0 == rc)
@@ -605,15 +1102,16 @@ end:
 } /* InterCRTGet */ 
 
 /*************************************************************************/
-/*  ClientTask                                                           */
+/*  ClientTaskStartup                                                    */
 /*                                                                       */
-/*  This is the ELCA client task.                                        */
+/*  This is the ELCA client startup task.                                */
+/*  Will be used at startup when no key and certificates are available.  */
 /*                                                                       */
 /*  In    : task parameter                                               */
 /*  Out   : none                                                         */
 /*  Return: never                                                        */
 /*************************************************************************/
-static void ClientTask (void *p)
+static void ClientTaskStartup (void *p)
 {
    int rc;
    
@@ -719,11 +1217,240 @@ end:
       tal_CPUReboot();
    }
 
-} /* ClientTask */
+} /* ClientTaskStartup */
+
+/*************************************************************************/
+/*  ClientTaskUpdate                                                     */
+/*                                                                       */
+/*  This is the ELCA client update task.                                 */
+/*  Will be used for an update of the certificates.                      */
+/*                                                                       */
+/*  In    : task parameter                                               */
+/*  Out   : none                                                         */
+/*  Return: never                                                        */
+/*************************************************************************/
+static void ClientTaskUpdate (void *p)
+{
+   int rc;
+
+   nUpdateResult = 1;
+   
+   term_printf("ELCAinst: Client started...\r\n");
+
+   /* Wait */
+   OS_TimeDly(2000);
+   
+   /* Save new chained CRT  */
+   rc = cert_Write_ChainCert(NewCRT, strlen(NewCRT));
+   if (0 == rc)
+   {
+      nUpdateResult = 0;
+
+      OS_TimeDly(5000);
+   
+      /* A certificate was installed, we can do a reset now */
+      tal_CPUReboot();
+   }
+   else
+   {
+      nUpdateResult = -1;
+   }
+   
+   nUpdateStartDone = 0;
+         
+   OS_TaskExit();
+} /* ClientTaskUpdate */
+
+/*************************************************************************/
+/*  cgi_cert                                                             */
+/*                                                                       */
+/*  In    : hs                                                           */
+/*  Out   : none                                                         */
+/*  Return: 0 = OK / -1 = ERROR                                          */
+/*************************************************************************/
+static int cgi_cert (HTTPD_SESSION *hs)
+{
+   int         rc;
+   static char b64_data[2048];
+   size_t      len;
+   json_t      JSON; 
+   char      *pMode;
+   char      *pCRT;
+   
+   IP_WEBS_CGISendHeader(hs);
+
+   rc = IP_JSON_ParseHS(hs, &JSON, 8);
+   if (-1 == rc) GOTO_END(ELCA_ERR);
+
+   /* Check if the access is blocked for the moment */   
+   rc = WebSidLoginBlocked();
+   if (1 == rc) GOTO_END(ELCA_ERR_BLOCKED);
+
+   /* Set default error, in case a wrong "command" was send */
+   rc = ELCA_ERR;
+   
+   /* Get mode for determining the next steps */
+   pMode = IP_JSON_GetString(&JSON, "mode");    
+
+   /* Check for CSR request */
+   if ((pMode != NULL) && (0 == strcmp(pMode, "reqcsr")))
+   {
+      /* Load our key */ 
+      rc = KeyLoad(); 
+      if(rc != ELCA_OK) GOTO_END(ELCA_ERR_KEY);
+   
+      /* Create CSR */
+      rc = CSRCreate();
+      if (ELCA_OK == rc)
+      {
+         s_puts("{", hs->s_stream);
+
+         /* Output CSR */ 
+         mbedtls_base64_encode((uint8_t*)b64_data, sizeof(b64_data), &len, (uint8_t*)CSRData, strlen(CSRData));
+         s_puts("\"csr\":\"", hs->s_stream);
+         for (int x = 0; x < (int)len; x++)
+         {
+            s_putchar(hs->s_stream, b64_data[x]);
+         }
+         s_puts("\",", hs->s_stream);
+
+         s_printf(hs->s_stream, "\"cn\":\"%s\",", CSR_CN);
+         s_printf(hs->s_stream, "\"an\":\"%s\",", CSR_AN);
+         s_printf(hs->s_stream, "\"o\":\"%s\",", CSR_O);
+         s_printf(hs->s_stream, "\"ou\":\"%s\",", CSR_OU);
+         s_printf(hs->s_stream, "\"c\":\"%s\"", CSR_C);
+
+         s_puts("}", hs->s_stream);
+         s_flush(hs->s_stream);
+      }
+   }
+   
+   /* Check if a new chained CRT should be received */
+   if ((pMode != NULL) && (0 == strcmp(pMode, "newcrt")))
+   {
+      pCRT = IP_JSON_GetString(&JSON, "crt");
+      if (NULL == pCRT) GOTO_END(ELCA_ERR_CRT);
+      if (0 == *pCRT) GOTO_END(ELCA_ERR_CRT);
+      
+      ConvertTextarea(pCRT);
+      rc = CheckNewChainCRT(pCRT);
+      if (ELCA_OK == rc)
+      {
+         s_puts("{", hs->s_stream);
+         
+         /* Server certificate */    
+         s_printf(hs->s_stream, "\"srv_id_cn\":\"%s\",", NewCRTSrv.CN);
+         s_printf(hs->s_stream, "\"srv_id_an\":\"%s\",", NewCRTSrv.AN);
+         s_printf(hs->s_stream, "\"srv_id_o\":\"%s\",",  NewCRTSrv.O);
+         s_printf(hs->s_stream, "\"srv_id_ou\":\"%s\",", NewCRTSrv.OU);
+         s_printf(hs->s_stream, "\"srv_id_c\":\"%s\",",  NewCRTSrv.C);
+         s_printf(hs->s_stream, "\"srv_id_nb\":\"%s\",", NewCRTSrv.vf);
+         s_printf(hs->s_stream, "\"srv_id_na\":\"%s\",", NewCRTSrv.vt);
+         s_printf(hs->s_stream, "\"srv_id_i\":\"%s\",",  NewCRTSrv.I);
+         s_printf(hs->s_stream, "\"srv_id_s\":\"%s\",",  NewCRTSrv.S);
+
+         /* Intermediate certificate */
+         s_printf(hs->s_stream, "\"int_id_cn\":\"%s\",", NewCRTInt.CN);
+         s_printf(hs->s_stream, "\"int_id_an\":\"%s\",", NewCRTInt.AN);
+         s_printf(hs->s_stream, "\"int_id_o\":\"%s\",",  NewCRTInt.O);
+         s_printf(hs->s_stream, "\"int_id_ou\":\"%s\",", NewCRTInt.OU);
+         s_printf(hs->s_stream, "\"int_id_c\":\"%s\",",  NewCRTInt.C);
+         s_printf(hs->s_stream, "\"int_id_nb\":\"%s\",", NewCRTInt.vf);
+         s_printf(hs->s_stream, "\"int_id_na\":\"%s\",", NewCRTInt.vt);
+         s_printf(hs->s_stream, "\"int_id_i\":\"%s\",",  NewCRTInt.I);
+         s_printf(hs->s_stream, "\"int_id_s\":\"%s\"",   NewCRTInt.S);
+
+         s_puts("}", hs->s_stream);
+         s_flush(hs->s_stream);
+      }
+   }
+
+   /* Check for final CRT update request */   
+   if ((pMode != NULL) && (0 == strcmp(pMode, "update")))
+   {
+      if (0 == nUpdateStartDone)
+      {
+         nUpdateStartDone = 1;
+         
+         /* Hack, start Install task */   
+         OS_TaskCreate(&TCBClient, ClientTaskUpdate, NULL, TASK_IP_ELCAC_PRIORITY,
+                       ClientStack, sizeof(ClientStack), 
+                       "ELCAupdate");
+      }                       
+      /* Send No error */
+      rc = ELCA_OK;
+      JSONSendError(hs, rc);
+   }
+   
+   /* Check for the update result */
+   if ((pMode != NULL) && (0 == strcmp(pMode, "result")))
+   {
+      rc = ELCA_OK;
+      
+      s_puts("{", hs->s_stream);
+
+      s_printf(hs->s_stream, "\"result\":%d", nUpdateResult);
+
+      s_puts("}", hs->s_stream);
+      s_flush(hs->s_stream);
+   }
+
+end:  
+
+   IP_JSON_Delete(&JSON);
+
+   if (rc != ELCA_OK)
+   {  
+      JSONSendError(hs, rc);
+   }   
+   
+   return(0);
+} /* cgi_cert */
+
+
+/*
+ * SSI variable list
+ */
+static const SSI_EXT_LIST_ENTRY SSIList[] =
+{
+   {NULL, NULL}
+};
+
+/*
+ * CGI variable list
+ */
+static const CGI_LIST_ENTRY CGIList[] =
+{
+   { "cgi-bin/cert.cgi", cgi_cert },
+
+   {NULL, NULL}
+};
 
 /*=======================================================================*/
 /*  All code exported                                                    */
 /*=======================================================================*/
+
+/*************************************************************************/
+/*  IP_ELCAC_Init                                                        */
+/*                                                                       */
+/*  Initialize the ELCA functionality of the web server.                 */
+/*                                                                       */
+/*  In    : none                                                         */
+/*  Out   : none                                                         */
+/*  Return: none                                                         */
+/*************************************************************************/
+void IP_ELCAC_Init (void)
+{
+   IP_WEBS_SSIListAdd((SSI_EXT_LIST_ENTRY*)SSIList);
+   IP_WEBS_CGIListAdd((CGI_LIST_ENTRY*)CGIList);
+   
+   /* Clear all data first */
+   memset(KeyData,   0x00, sizeof(KeyData));
+   memset(CSRData,   0x00, sizeof(CSRData));
+   memset(CRTData,   0x00, sizeof(CRTData));
+   memset(InterData, 0x00, sizeof(InterData));
+
+} /* IP_ELCAC_Init */
 
 /*************************************************************************/
 /*  IP_ELCAC_Start                                                       */
@@ -742,7 +1469,7 @@ void IP_ELCAC_Start (ip_elcac_cb_ready_t callback)
    {
       ReadyCB = callback;
    
-      OS_TaskCreate(&TCBClient, ClientTask, NULL, TASK_IP_ELCAC_PRIORITY,
+      OS_TaskCreate(&TCBClient, ClientTaskStartup, NULL, TASK_IP_ELCAC_PRIORITY,
                     ClientStack, sizeof(ClientStack), 
                     "ELCAc");
                     

@@ -1,5 +1,5 @@
 del *.bak /S
-del build\*.* /Q
+rmdir build /S /Q 
 rmdir "prj\Flash to SDRAM Debug" /S /Q 
 rmdir "prj\Flash to SDRAM Release" /S /Q 
 rmdir "prj\SDRAM Debug" /S /Q 

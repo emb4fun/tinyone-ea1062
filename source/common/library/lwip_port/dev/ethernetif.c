@@ -306,7 +306,7 @@ static void enet_init (struct netif *netif)
 
    /* 
     * @@MF: No link detection here, will be done later by CheclLink.
-    * Set default speed, mode and callback.
+    * Set default speed, mode, callback and user data.
     */
    config.miiSpeed  = kPHY_Speed100M;
    config.miiDuplex = kPHY_FullDuplex;

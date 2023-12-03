@@ -2251,6 +2251,8 @@ status_t LPI2C_SlaveTransferGetCount(LPI2C_Type *base, lpi2c_slave_handle_t *han
 {
     status_t status = kStatus_Success;
 
+    (void)base;
+
     assert(NULL != handle);
 
     if (count == NULL)

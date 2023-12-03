@@ -28,13 +28,6 @@
   <ProjectSessionItem path="tinyone-ea1062"/>
   <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062"/>
   <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062;Source Files"/>
-  <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062;Source Files;common"/>
-  <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062;Source Files;common;library"/>
-  <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062;Source Files;common;library;tal"/>
-  <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062;Source Files;common;library;tal;cpu"/>
-  <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062;Source Files;common;library;tal;cpu;sdk"/>
-  <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062;Source Files;common;library;tal;cpu;sdk;components"/>
-  <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062;Source Files;common;library;tal;cpu;sdk;components;phy"/>
   <ProjectSessionItem path="tinyone-ea1062;tinyone-ea1062;Source Files;src"/>
  </Project>
  <Register1>
@@ -73,8 +66,6 @@
  </Watch4>
  <Files>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="600" useTextEdit="1" path="../src/main.c" left="0" selected="1" top="585" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="9" y="45" useTextEdit="1" path="../common/library/tal_ea1062/board/ea1062/inc/talboard.h" left="0" top="13" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="40" y="43" useTextEdit="1" path="../common/library/tal_ea1062/board/ea1062/src/eth_config.c" left="0" top="38" codecName="Default"/>
  </Files>
- <EMStudioWindow activeProject="tinyone-ea1062" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="SDRAM Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Projekte/GitHub/tinyone-ea1062/source/common/library/base32" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <EMStudioWindow activeProject="tinyone-ea1062" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="SDRAM Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Projekte/GitHub/tinyone-ea1062/source/common/library/base32" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>
