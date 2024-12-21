@@ -1,7 +1,7 @@
 /**************************************************************************
 *  This file is part of the TAL project (Tiny Abstraction Layer)
 *
-*  Copyright (c) 2020-2022 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2020-2024 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -42,8 +42,6 @@
 
 #include "clock_config.h"
 
-//#include "fsl_common.h"
-#include "fsl_cache.h"
 #include "fsl_trng.h"
 #include "fsl_iomuxc.h"
 #include "fsl_wdog.h"
@@ -197,6 +195,43 @@ void tal_CPUSysTickStart (void)
    /* Enable SysTick IRQ and SysTick Timer */
    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 } /* tal_CPUSysTickStart */
+
+#if 0
+/*************************************************************************/
+/*  tal_CPUStatDWTInit                                                   */
+/*                                                                       */
+/*  Enable the Debug Exception and Monitor Control block.                */
+/*  See DDI0403D_armv7m_arm.pdf.                                         */
+/*                                                                       */
+/*  In    : none                                                         */
+/*  Out   : none                                                         */
+/*  Return: none                                                         */
+/*************************************************************************/
+void tal_CPUStatDWTInit (void)
+{
+   /* DWT and ITM blocks enabled */
+   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+
+   /* Enabled CYCCNT */
+   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+} /* tal_CPUStatDWTInit */
+
+/*************************************************************************/
+/*  tal_CPUStatDWTGetCnt                                                 */
+/*                                                                       */
+/*  Return the clock cycle counter.                                      */
+/*  See DDI0403D_armv7m_arm.pdf.                                         */
+/*                                                                       */
+/*  In    : none                                                         */
+/*  Out   : none                                                         */
+/*  Return: CYCCNT                                                       */
+/*************************************************************************/
+uint32_t tal_CPUStatDWTGetCnt (void)
+{
+   /* Return the clock cycle counter */
+   return(DWT->CYCCNT);
+} /* tal_CPUStatDWTGetCnt */
+#endif
 
 /*************************************************************************/
 /*  tal_CPUIrqEnable                                                     */
@@ -443,7 +478,7 @@ void tal_CPUReboot (void)
    /*
     * Init watchdog, if not done before
     */
-#if defined(__FLASH__) || defined(__FLASH_2_SDRAM__) || defined(__SDRAM_BOOT__)  
+#if defined(__FLASH__) || defined(__FLASH_2_SDRAM__) || defined(__SDRAM_BOOT__) || defined(ENABLED_WDOG)
    tal_CPUInitHWDog();
 #endif   
 
@@ -459,7 +494,7 @@ void tal_CPUReboot (void)
    
 } /* tal_CPUReboot */
 
-#if !defined(RTOS_UCOS3)
+#if defined(RTOS_TCTS)
 /*************************************************************************/
 /*  SysTick_Handler                                                      */
 /*                                                                       */
@@ -474,7 +509,13 @@ void SysTick_Handler (void)
    OS_TimerCallback();
    
    TAL_CPU_IRQ_EXIT();
+
+/* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F, Cortex-M7, Cortex-M7F Store immediate overlapping
+  exception return operation might vector to incorrect interrupt */
+#if defined __CORTEX_M && (__CORTEX_M == 4U || __CORTEX_M == 7U)
+   __DSB();
+#endif
 } /* SysTick_Handler */
-#endif /* !defined(RTOS_UCOS) */
+#endif /* defined(RTOS_TCTS) */
 
 /*** EOF ***/

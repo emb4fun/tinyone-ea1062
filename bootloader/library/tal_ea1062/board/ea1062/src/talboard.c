@@ -1,7 +1,7 @@
 /**************************************************************************
 *  This file is part of the TAL project (Tiny Abstraction Layer)
 *
-*  Copyright (c) 2020-2022 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2020-2025 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -40,6 +40,10 @@
 /*=======================================================================*/
 #include <string.h>
 #include "tal.h"
+
+#if defined(TAL_ENABLE_ETH)
+#include "ipstack_conf.h"
+#endif
 
 #include "fsl_iomuxc.h"
 #include "fsl_lpi2c.h"
@@ -314,6 +318,7 @@ TAL_RESULT tal_BoardGetMACAddress (int iface, uint8_t *pAddress)
 {
    TAL_RESULT  Error = TAL_ERROR;
 
+#if !defined(USE_IP_DEFAULT_MAC_ADDR)
    if (0 == iface)
    {
       Error = TAL_OK;
@@ -329,6 +334,21 @@ TAL_RESULT tal_BoardGetMACAddress (int iface, uint8_t *pAddress)
          pAddress[5] = 0x99;
       }
    }      
+#else
+   if (0 == iface)
+   {
+      uint8_t  MACAddress[6] = IP_DEFAULT_MAC_ADDR;
+
+      Error = TAL_OK;
+
+      pAddress[0] = MACAddress[0];
+      pAddress[1] = MACAddress[1];
+      pAddress[2] = MACAddress[2];
+      pAddress[3] = MACAddress[3];
+      pAddress[4] = MACAddress[4];
+      pAddress[5] = MACAddress[5];
+   }
+#endif         
    
    return(Error);
 } /* tal_BoardGetMACAddress */

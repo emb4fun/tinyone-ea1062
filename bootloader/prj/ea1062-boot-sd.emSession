@@ -5,9 +5,7 @@
   <Exceptions set="MemManage;UsageFault_Coprocessor;UsageFault_CheckingError;UsageFault_StateError;BusFault;ExceptionEntryReturnFault;HardFault"/>
  </Breakpoints>
  <ExecutionProfileWindow/>
- <FrameBufferWindow>
-  <FrameBufferWindow bufferHeight="-1" addressSpace="" addressText="" bufferWidth="-1"/>
- </FrameBufferWindow>
+ <FrameBuffer/>
  <Memory1>
   <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" viewType="4" addressOrder="0" columnsText="" refreshPeriod="0" name="ea1062-boot-sd_TCM Debug" sizeText="" addressText=""/>
   <MemoryWindow addressSpace="" dataSize="1" autoEvaluate="0" viewMode="0" viewType="4" addressOrder="0" columnsText="" refreshPeriod="0" name="ea1062-boot-sd_Flash Release" sizeText="" addressText=""/>
@@ -31,6 +29,7 @@
   <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library"/>
   <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library;fatfs"/>
   <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library;tal"/>
+  <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library;tal;board"/>
   <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library;tal;cpu"/>
   <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;src"/>
  </Project>
@@ -69,7 +68,9 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="402" useTextEdit="1" path="../src/main.c" left="0" selected="1" top="378" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="56" y="251" useTextEdit="1" path="../src/main.c" left="0" selected="1" top="232" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="37" y="91" useTextEdit="1" path="../library/tal_ea1062/board/ea1062/src/fatfs_diskio.c" left="0" top="69" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="3932" useTextEdit="1" openedFrom="D:/Projekte/GitHub/tinyone-ea1062/bootloader/src/main.c" path="../library/fatfs/src/ff.c" left="0" top="3922" codecName="Default"/>
  </Files>
  <EMStudioWindow activeProject="ea1062-boot-sd" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Flash Release" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Projekte/Embedded/ARM/ea1062/ea1062-boot-sd/src" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>

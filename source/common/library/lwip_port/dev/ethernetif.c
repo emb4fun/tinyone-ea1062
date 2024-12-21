@@ -91,6 +91,7 @@
 
 #include "lwip\tcpip.h"
 #include "netif\etharp.h"
+#include "lwip\ethip6.h"
 #include "lwip\stats.h"
 #include "lwip\igmp.h"
 
@@ -241,6 +242,52 @@ static err_t ethernetif_igmp_mac_filter (struct netif *netif, const ip4_addr_t *
    return(result);
 } /* ethernetif_igmp_mac_filter */
 
+/**
+ * This function handle the MLD filter ADD/DEL functionality.
+ */
+#if defined(LWIP_IPV6) && (LWIP_IPV6 >= 1)
+static err_t ethernetif_mld_mac_filter (struct netif *netif, const ip6_addr_t *group, enum netif_mac_filter_action action)
+{
+   struct ethernetif *ethernetif = netif->state;
+   uint8_t            multicastMacAddr[6];
+   err_t              result = ERR_OK;
+
+   multicastMacAddr[0] = 0x33;
+   multicastMacAddr[1] = 0x33;
+   multicastMacAddr[2] = (group->addr[3]) & 0xFF;
+   multicastMacAddr[3] = (group->addr[3] >>  8) & 0xFF;
+   multicastMacAddr[4] = (group->addr[3] >> 16) & 0xFF;
+   multicastMacAddr[5] = (group->addr[3] >> 24) & 0xFF;
+
+   switch (action)
+   {
+      case IGMP_ADD_MAC_FILTER:
+      {
+         /* Adds the ENET device to a multicast group.*/
+         ENET_AddMulticastGroup(ethernetif->base, multicastMacAddr);
+         break;
+      }
+
+      case IGMP_DEL_MAC_FILTER:
+      {
+         /* Moves the ENET device from a multicast group.*/
+#if 0 // @@MF: I do not know why the original code does not want to use this function
+         ENET_LeaveMulticastGroup(ethernetif->base, multicastMacAddr);
+#endif
+         break;
+      }
+
+      default:
+      {
+         result = ERR_IF;
+         break;
+      }
+   }
+
+   return(result);
+} /* ethernetif_igmp_mac_filter */
+#endif
+
 
 /**
  * Get ENAT base address by index.
@@ -319,6 +366,7 @@ static void enet_init (struct netif *netif)
    config.interrupt |= (kENET_RxFrameInterrupt | kENET_TxFrameInterrupt | kENET_TxBufferInterrupt);   /*lint !e655*/
 
    NVIC_SetPriority(ENET_IRQn, ENET_PRIORITY);
+   NVIC_SetPriority(ENET2_IRQn, ENET_PRIORITY);
 
 #if defined(ENET_ENHANCEDBUFFERDESCRIPTOR_MODE)
    NVIC_SetPriority(ENET_1588_Timer_IRQn, ENET_1588_PRIORITY);
@@ -458,11 +506,22 @@ static err_t low_level_init (struct netif *netif, const uint8_t enetIdx)
    /* Accept broadcast address, ARP traffic and Multicast */
    netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_ETHERNET;
 
+#if defined(LWIP_IPV6) && (LWIP_IPV6 != 0)
+   netif->flags |= NETIF_FLAG_MLD6;
+#endif
+
 #if (LWIP_IGMP >= 1)   
    /* Add IGMP support */   
    netif->flags |= NETIF_FLAG_IGMP;
    netif->igmp_mac_filter = ethernetif_igmp_mac_filter;
 #endif   
+
+#if (LWIP_IPV6 >= 1) && (LWIP_IPV6_MLD >= 1)
+   /* Add IGMP support */
+   netif->flags |= NETIF_FLAG_MLD6;
+   netif->mld_mac_filter = ethernetif_mld_mac_filter;
+#endif
+
 
    /* 
     * Init Ethernet pins if not already done 
@@ -810,6 +869,7 @@ static void ethernetif_input (void *arg)
             {
                /* IP or ARP packet? */
                case ETHTYPE_IP:
+               case ETHTYPE_IPV6:
                case ETHTYPE_ARP:
                
                   /* full packet send to tcpip_thread to process */
@@ -902,6 +962,10 @@ static err_t _ethernetif_init (struct netif *netif, struct ethernetif *etherneti
        */
       netif->output     = etharp_output;
       netif->linkoutput = low_level_output;
+
+#if defined(LWIP_IPV6) && (LWIP_IPV6 != 0)
+      netif->output_ip6 = ethip6_output;
+#endif
 
       /* Init ethernetif parameters.*/
       ethernetif->base = get_enet_base(enetIdx);

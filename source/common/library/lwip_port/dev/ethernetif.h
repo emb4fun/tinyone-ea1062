@@ -49,7 +49,12 @@
  * Definitions
  ******************************************************************************/
 
+#if !defined(RTOS_FREERTOS)
 #define ENET_RXBD_NUM         (5)
+#else
+#define ENET_RXBD_NUM         (10)  /* For better performance with FreeRTOS */
+#endif
+
 #define ENET_TXBD_NUM         (3)
 
 #define ENET_RXBUFF_SIZE      (ENET_FRAME_MAX_FRAMELEN)

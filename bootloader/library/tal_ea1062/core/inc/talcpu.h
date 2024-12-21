@@ -1,7 +1,7 @@
 /**************************************************************************
 *  This file is part of the TAL project (Tiny Abstraction Layer)
 *
-*  Copyright (c) 2013-2022 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2013-2024 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -51,8 +51,15 @@
 /*
  * Check for Cortex-M and Cortex-M0 style CPU
  */
-#if defined(__ARM_ARCH_7EM__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_6M__)
+#if defined(__ARM_ARCH_7EM__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_6M__) || defined(__ARM_ARCH_8M_MAINLINE__)
 #include "talcpu_cm.h"
+#endif
+
+/*
+ * Check for RISC-V CPU
+ */
+#if defined(__ARCH_RISCV__)
+#include "talcpu_riscv.h"
 #endif
 
 /**************************************************************************
@@ -75,6 +82,12 @@ typedef void (*tal_irq_fnt)(uint32_t IRQ, void *Context);
 
 void       tal_CPUInit (void);
 void       tal_CPUSysTickStart (void);
+
+void       tal_CPUSysTick10kHzInit (void);
+void       tal_CPUSysTick10kHzStart (void);
+uint32_t   tal_CPUSysTick10kHzGet (void);
+void       tal_CPUSysTick10kHzSet (uint32_t dValue);
+
 
 void       tal_CPUIrqEnable (int IRQ);
 void       tal_CPUIrqDisable (int IRQ);

@@ -1,5 +1,5 @@
 /**************************************************************************
-*  Copyright (c) 2020 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2020-2024 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -33,7 +33,7 @@
 ***************************************************************************
 *  History:
 *
-*  11.07.2020  mifi  First Version for the EA iMX RT1062 Developer’s Kit.
+*  11.07.2020  mifi  First Version for the EA iMX RT1062 Developers Kit.
 **************************************************************************/
 #define __MAIN_C__
 
@@ -215,7 +215,7 @@ static void ImageCopy (void)
    /* 
     * Read anc check XBIN header first
     */
-   res = f_read(&hFile, &Xbin, sizeof(XBIN_HEADER), &dBytesRead); 
+   res = f_read(&hFile, &Xbin, sizeof(XBIN_HEADER), (UINT*)&dBytesRead); 
    if (FR_OK == res)
    {
       res = FR_INT_ERR;
@@ -249,7 +249,7 @@ static void ImageCopy (void)
    while (dDataTotalSize != 0)
    {
       dDataRead = MIN(DATA_BUF_SIZE, dDataTotalSize);
-      res = f_read(&hFile, pDestAddr, dDataRead, &dBytesRead); 
+      res = f_read(&hFile, pDestAddr, dDataRead, (UINT*)&dBytesRead); 
       if (res != FR_OK)
       {
          term_printf("Error read\r\n");

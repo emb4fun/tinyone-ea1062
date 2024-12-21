@@ -174,7 +174,7 @@ osa_status_t OSA_SemaphoreWait (osa_semaphore_handle_t semaphoreHandle, uint32_t
    uint32_t     TimeoutMs;
    OS_SEMA    *pSema;
 
-   if (semaphoreHandle != NULL)
+   if ((semaphoreHandle != NULL) && (*(uint32_t*)semaphoreHandle != 0))
    {
       TimeoutMs = (osaWaitForever_c == millisec) ? OS_WAIT_INFINITE : millisec;
 
@@ -207,7 +207,7 @@ osa_status_t OSA_SemaphorePost (osa_semaphore_handle_t semaphoreHandle)
    osa_status_t Status = KOSA_StatusError;
    OS_SEMA    *pSema;
 
-   if (semaphoreHandle != NULL)
+   if ((semaphoreHandle != NULL) && (*(uint32_t*)semaphoreHandle != 0))
    {
       pSema  = (OS_SEMA*)(*(uint32_t*)semaphoreHandle);
       Status = KOSA_StatusSuccess;
@@ -278,7 +278,7 @@ osa_status_t OSA_MutexLock (osa_mutex_handle_t mutexHandle, uint32_t millisec)
    uint32_t     TimeoutMs;
    OS_MUTEX   *pMutex;
 
-   if (mutexHandle != NULL)
+   if ((mutexHandle != NULL) && (*(uint32_t*)mutexHandle != 0))
    {
       TimeoutMs = (osaWaitForever_c == millisec) ? OS_WAIT_INFINITE : millisec;
 
@@ -312,14 +312,18 @@ osa_status_t OSA_MutexUnlock (osa_mutex_handle_t mutexHandle)
    osa_status_t Status = KOSA_StatusError;
    OS_MUTEX   *pMutex;
 
-   if (mutexHandle != NULL)
+   if ((mutexHandle != NULL) && (*(uint32_t*)mutexHandle != 0))
    {
       pMutex  = (OS_MUTEX*)(*(uint32_t*)mutexHandle);
       Status = KOSA_StatusSuccess;
 
       if (0U != __get_IPSR())
       {
-         OS_MutexSignalFromInt(pMutex);
+         while(1)
+         {
+          /* Not supported */
+          __asm__ volatile ("nop");
+         }
       }
       else
       {

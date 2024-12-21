@@ -128,10 +128,12 @@ static void i2c_init(void)
     LPI2C_MasterInit(LPI2C1, &masterConfig, LPI2C_CLOCK_FREQUENCY);
 }
 
+#if 0
 static void i2c_deinit(void)
 {
     LPI2C_MasterDeinit(LPI2C1);
 }
+#endif
 
 /* Write to both port registers. */
 static status_t i2c_write(uint8_t port0reg, uint16_t val)

@@ -1,7 +1,7 @@
 /**************************************************************************
 *  This file is part of the TAL project (Tiny Abstraction Layer)
 *
-*  Copyright (c) 2013-2022 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2013-2024 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -39,7 +39,12 @@
 *  Includes
 **************************************************************************/
 #include <stdint.h>
+
+#if defined(RTOS_TCTS)
 #include "tcts.h"
+#else
+#include "osal.h"
+#endif
 
 /**************************************************************************
 *  Global Definitions

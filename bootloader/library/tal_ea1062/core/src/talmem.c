@@ -1,7 +1,7 @@
 /**************************************************************************
 *  This file is part of the TAL project (Tiny Abstraction Layer)
 *
-*  Copyright (c) 2018-2022 by Michael Fischer (www.emb4fun.de).
+*  Copyright (c) 2018-2023 by Michael Fischer (www.emb4fun.de).
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without 
@@ -412,6 +412,9 @@ static void MEMAdd (tal_mem_id ID, void *pBuffer, uint32_t dSize)
       dRest  = dSize % MEM_ALIGN;
       dSize -= dRest;
 
+      /* Clear data first */
+      memset((void*)dAddress, 0x00, dSize);
+
       MemList[ID].dSize += dSize;
    
       pMem = (mem_hdr_t*)dAddress;
@@ -441,8 +444,8 @@ static void MEMAdd (tal_mem_id ID, void *pBuffer, uint32_t dSize)
 /*************************************************************************/
 void tal_MEMInit (void)
 {
-   uint32_t dAddr = 0;
-   uint32_t dSize = 0;
+   uint32_t dAddr;
+   uint32_t dSize;
 
    /* 
     * Clear context list first 
@@ -478,7 +481,7 @@ void tal_MEMInit (void)
    /* Get memory pointer */ 
    dAddr = (uint32_t)&TAL_HEAP_MEM2_START;
    dSize = ((uint32_t)(&TAL_HEAP_MEM2_END) - (uint32_t)(&TAL_HEAP_MEM2_START)) - 1;
-   
+
    MEMAdd(XM_ID_HEAP, (uint8_t*)dAddr, dSize);
 #endif   
    
