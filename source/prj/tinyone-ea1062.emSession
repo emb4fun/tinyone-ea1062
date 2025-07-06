@@ -67,7 +67,6 @@
  </Watch4>
  <Files>
   <SessionOpenFile windowGroup="DockEditLeft" x="0" y="624" useTextEdit="1" path="../src/main.c" left="0" selected="1" top="590" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="9" y="54" useTextEdit="1" path="../common/library/ipweb/src/web_ssl.c" left="0" top="35" codecName="Default"/>
  </Files>
  <EMStudioWindow activeProject="tinyone-ea1062" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="SDRAM Release" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Projekte/GitHub/tinyone-ea1062/source/common/library/base32" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>

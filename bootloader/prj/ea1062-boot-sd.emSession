@@ -26,12 +26,8 @@
   <ProjectSessionItem path="ea1062-boot-sd"/>
   <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd"/>
   <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files"/>
-  <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library"/>
-  <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library;fatfs"/>
-  <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library;tal"/>
-  <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library;tal;board"/>
-  <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;library;tal;cpu"/>
   <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;Source Files;src"/>
+  <ProjectSessionItem path="ea1062-boot-sd;ea1062-boot-sd;System Files"/>
  </Project>
  <Register1>
   <RegisterWindow visibleNodes="CPU - Current Context/r0;CPU - Current Context/r1;CPU - Current Context/r2;CPU - Current Context/r3;CPU - Current Context/r4;CPU - Current Context/r5;CPU - Current Context/r6;CPU - Current Context/r7;CPU - Current Context/r8;CPU - Current Context/r9;CPU - Current Context/r10;CPU - Current Context/r11;CPU - Current Context/r12;CPU - Current Context/sp(r13);CPU - Current Context/lr(r14);CPU - Current Context/pc(r15);CPU - Current Context/apsr;CPU/r0;CPU/r1;CPU/r2;CPU/r3;CPU/r4;CPU/r5;CPU/r6;CPU/r7;CPU/r8;CPU/r9;CPU/r10;CPU/r11;CPU/r12;CPU/sp(r13);CPU/lr(r14);CPU/pc(r15);CPU/xpsr;CPU/MSP;CPU/PSP;CPU/PRIMASK;CPU/BASEPRI;CPU/FAULTMASK;CPU/CONTROL;CPU/internal" binaryNodes="" asciiNodes="" openNodes="CPU - Current Context" name="ea1062-boot-sd_TCM Debug" decimalNodes="" octalNodes="" unsignedNodes=""/>
@@ -68,9 +64,8 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="56" y="251" useTextEdit="1" path="../src/main.c" left="0" selected="1" top="232" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="37" y="91" useTextEdit="1" path="../library/tal_ea1062/board/ea1062/src/fatfs_diskio.c" left="0" top="69" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="1" y="3932" useTextEdit="1" openedFrom="D:/Projekte/GitHub/tinyone-ea1062/bootloader/src/main.c" path="../library/fatfs/src/ff.c" left="0" top="3922" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="56" y="251" useTextEdit="1" path="../src/main.c" left="0" top="232" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="0" useTextEdit="1" path="SEGGER_HardFaultHandler.c" left="0" selected="1" top="245" codecName="Default"/>
  </Files>
  <EMStudioWindow activeProject="ea1062-boot-sd" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Flash Release" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="D:/Projekte/Embedded/ARM/ea1062/ea1062-boot-sd/src" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>
