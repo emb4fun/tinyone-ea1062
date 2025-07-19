@@ -1624,6 +1624,32 @@ status_t ENET_GetRxFrameSize(enet_handle_t *handle, uint32_t *length, uint8_t ri
     bool isReturn                                = false;
     status_t result                              = kStatus_Success;
 
+    /*
+     * [Workaround] Avoid modifying ENET_GetRxFrameSize from NXP SDK
+     *
+     * When the network is under high load, rxGenIdx may point to an 
+     * empty RX descriptor, even though subsequent descriptors contain
+     * valid data. Since ENET_GetRxFrameSize only examines the descriptor
+     * at rxGenIdx, we scan forward to locate the first occupied descriptor
+     * and then update rxGenIdx accordingly.
+     */
+    int  rxNewIdx;
+    for (int i = 0; i < rxBdRing->rxRingLen; i++)
+    {
+        rxNewIdx = (rxBdRing->rxGenIdx + i) % rxBdRing->rxRingLen;
+        curBuffDescrip = rxBdRing->rxBdBase + rxNewIdx;
+
+        /* Check if the descriptor contains data */
+        if (0U == (curBuffDescrip->control & ENET_BUFFDESCRIPTOR_RX_EMPTY_MASK))
+        {
+            /* Update index to point to a valid descriptor */
+            rxBdRing->rxGenIdx = rxNewIdx;
+            break;
+        }
+    }
+    curBuffDescrip = rxBdRing->rxBdBase + rxBdRing->rxGenIdx;
+    /********************************************************************************/
+
     /* Check the current buffer descriptor's empty flag. If empty means there is no frame received. */
     if (0U != (curBuffDescrip->control & ENET_BUFFDESCRIPTOR_RX_EMPTY_MASK))
     {

@@ -2,12 +2,24 @@
 * Project: tinyone-ea1062
 * Name   : "A small embedded DHCP and SNTP server"
 * Target : Embedded Artists "iMX RT1062 Developer's Kit"
-* Version: 20250628
+* Version: 20250719
 ***************************************************************************
 * Tools  : SEGGER Embedded Studio for ARM v8.22a
 ***************************************************************************
 * URL    : https://www.emb4fun.de/projects/tone/index.html
 ***************************************************************************
+
+= Version 1.28 / 1.21, 19.07.2025
+   * [Fixed] Ethernet RX handling under high network load (NXP SDK)
+     A non-intrusive workaround has been implemented to avoid modifying
+     "ENET_GetRxFrameSize". The issue where "rxBdRing->rxGenIdx" pointed
+     to an empty descriptor while valid RX frames were present in subsequent
+     descriptors has been resolved. Forward-scan logic has been added to
+     locate and update rxBdRing->rxGenIdx to the first occupied RX descriptor,
+     thereby preventing erroneous RxFrameEmpty results.
+     The fix was verified using tcpreplay to generate 100 MBit throughput.
+   * Furthermore, the "low_level_input" function has been updated to now
+     correctly account for defective frames.
 
 = Version 1.27 / 1.21, 28.06.2025
    * Updated lwIP to "lwip-56b29f8bcfaefe2974dca67bde16cc7c391feaeb".

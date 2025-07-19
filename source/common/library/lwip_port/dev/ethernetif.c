@@ -337,6 +337,8 @@ static void enet_init (struct netif *netif)
    struct ethernetif   *ethernetif = netif->state;
     
    /* Prepare the buffer configuration. */
+   memset(&buffCfg, 0x00, sizeof(buffCfg));
+   
    buffCfg.rxBdNumber         = ENET_RXBD_NUM;                    /* Receive buffer descriptor number. */
    buffCfg.txBdNumber         = ENET_TXBD_NUM;                    /* Transmit buffer descriptor number. */
    buffCfg.rxBuffSizeAlign    = sizeof(rx_buffer_t);              /* Aligned receive data buffer size. */
@@ -744,82 +746,75 @@ static struct pbuf *low_level_input (struct netif *netif)
    uint32_t           len;
    status_t           status;
 
-   /* Obtain the size of the packet and put it into the "len"
-      variable. */
+   /* Obtain the size of the packet and put it into the "len" variable. */
    status = enet_get_rx_frame_size(ethernetif, &len);
 
-   if (kStatus_ENET_RxFrameEmpty != status)
+   /* Check for frame error */
+   while (kStatus_ENET_RxFrameError == status)
    {
-      /* Call enet_read_frame when there is a received frame. */
-      if (len != 0)
+      /* Update the receive buffer. */
+      enet_read_frame(ethernetif, NULL, 0U);
+      LINK_STATS_INC(link.drop);
+
+      status = enet_get_rx_frame_size(ethernetif, &len);
+   }
+   
+   /* Check if frame is empty */
+   if (kStatus_ENET_RxFrameEmpty == status)
+   {
+      return(NULL);
+   }      
+   
+   /* Check for a good frame */
+   if ((kStatus_Success == status) && (len != 0))
+   {
+#if (ETH_PAD_SIZE)
+      len += ETH_PAD_SIZE; /* allow room for Ethernet padding */
+#endif
+
+      /* We allocate a pbuf chain of pbufs from the pool. */
+      p = pbuf_alloc(PBUF_RAW, (u16_t)len, PBUF_POOL);
+      if (p != NULL)
       {
 #if (ETH_PAD_SIZE)
-         len += ETH_PAD_SIZE; /* allow room for Ethernet padding */
+         pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
-
-         /* We allocate a pbuf chain of pbufs from the pool. */
-         p = pbuf_alloc(PBUF_RAW, (u16_t)len, PBUF_POOL);
-         if (p != NULL)
+         if (p->next == 0) /* One-chain buffer.*/
          {
-#if (ETH_PAD_SIZE)
-            pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
-#endif
-            if (p->next == 0) /* One-chain buffer.*/
-            {
-               enet_read_frame(ethernetif, p->payload, p->len);
-            }
-            else    /* Multi-chain buffer.*/
-            {
-               uint8_t data_tmp[ENET_FRAME_MAX_FRAMELEN];
-               uint32_t data_tmp_len = 0;
+            enet_read_frame(ethernetif, p->payload, p->len);
+         }
+         else    /* Multi-chain buffer.*/
+         {
+            uint8_t data_tmp[ENET_FRAME_MAX_FRAMELEN];
+            uint32_t data_tmp_len = 0;
 
-               enet_read_frame(ethernetif, data_tmp, p->tot_len);
+            enet_read_frame(ethernetif, data_tmp, p->tot_len);
 
-               /* We iterate over the pbuf chain until we have read the entire
-               * packet into the pbuf. */
-               for (q = p; (q != NULL) && ((data_tmp_len + q->len) <= sizeof(data_tmp)); q = q->next)
-               {
-                  /* Read enough bytes to fill this pbuf in the chain. The
-                   * available data in the pbuf is given by the q->len
-                   * variable. */
-                  memcpy(q->payload,  &data_tmp[data_tmp_len], q->len);
-                  data_tmp_len += q->len;
-               }
+            /* We iterate over the pbuf chain until we have read the entire
+             * packet into the pbuf. */
+            for (q = p; (q != NULL) && ((data_tmp_len + q->len) <= sizeof(data_tmp)); q = q->next)
+            {
+               /* Read enough bytes to fill this pbuf in the chain. The
+                * available data in the pbuf is given by the q->len
+                * variable. */
+               memcpy(q->payload,  &data_tmp[data_tmp_len], q->len);
+               data_tmp_len += q->len;
             }
+         }
 
 #if (ETH_PAD_SIZE)
-            pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
+         pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
 
-            LINK_STATS_INC(link.recv);
-         }
-         else
-         {
-            /* Drop packet*/
-            enet_read_frame(ethernetif, NULL, 0U);
-
-            LINK_STATS_INC(link.memerr);
-            LINK_STATS_INC(link.drop);
-         }
+         LINK_STATS_INC(link.recv);
       }
       else
       {
-         /* Update the received buffer when error happened. */
-         if (status == kStatus_ENET_RxFrameError)
-         {
-         
-// @@MF: I do not know why the original code does not want to use this functionality
-#if 0 && defined(FSL_FEATURE_SOC_ENET_COUNT) && (FSL_FEATURE_SOC_ENET_COUNT > 0) /* Error statisctics */
-            enet_data_error_stats_t eErrStatic;
-            /* Get the error information of the received g_frame. */
-            ENET_GetRxErrBeforeReadFrame(&ethernetif->handle, &eErrStatic);
-#endif
+         /* Drop packet*/
+         enet_read_frame(ethernetif, NULL, 0U);
 
-            /* Update the receive buffer. */
-            enet_read_frame(ethernetif, NULL, 0U);
-
-            LINK_STATS_INC(link.drop);
-         }
+         LINK_STATS_INC(link.memerr);
+         LINK_STATS_INC(link.drop);
       }
    }
    
