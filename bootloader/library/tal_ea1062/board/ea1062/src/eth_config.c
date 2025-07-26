@@ -55,7 +55,7 @@
 #include "fsl_phy.h"
 #include "fsl_enet.h"
 
-#include "device\phyksz8081\fsl_phyksz8081.h"
+#include "device/phyksz8081/fsl_phyksz8081.h"
 
 #if !defined(FSL_FEATURE_PHYKSZ8081_USE_RMII50M_MODE)
    Error: FSL_FEATURE_PHYKSZ8081_USE_RMII50M_MODE must be definedby the preprocessor;
