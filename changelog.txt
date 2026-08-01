@@ -1,14 +1,19 @@
 ***************************************************************************
 * Project: tinyone-ea1062
 * Name   : "A small embedded DHCP and SNTP server"
-* Target : Embedded Artists "iMX RT1062 Developer's Kit"
-* Version: 20250719
+* Target : Embedded Artists "iMX RT1062 Developer’s Kit" 
+* Version: 20260801
 ***************************************************************************
-* Tools  : SEGGER Embedded Studio for ARM v8.22a
+* Tools  : SEGGER Embedded Studio v8.30
 ***************************************************************************
 * URL    : https://www.emb4fun.de/projects/tone/index.html
 ***************************************************************************
 
+= Version 1.29 / 1.21, 01.08.2026
+   * Updated lwIP to version from 2026-06-16.
+   * Updated MbedTLS to v3.6.7.
+   * Updated FatFS to R0.16 with patch 2.
+   
 = Version 1.28 / 1.21, 19.07.2025
    * [Fixed] Ethernet RX handling under high network load (NXP SDK)
      A non-intrusive workaround has been implemented to avoid modifying

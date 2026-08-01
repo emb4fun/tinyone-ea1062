@@ -333,7 +333,7 @@ TAL_RESULT tal_BoardGetMACAddress (int iface, uint8_t *pAddress)
          pAddress[4] = 0x99;
          pAddress[5] = 0x99;
       }
-   }      
+   }
 #else
    if (0 == iface)
    {

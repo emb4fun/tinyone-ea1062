@@ -1,13 +1,39 @@
-// SEGGER Embedded Studio, runtime support.
-//
-// Copyright (c) 2014-2017 SEGGER Microcontroller GmbH & Co KG
-// Copyright (c) 2001-2017 Rowley Associates Limited.
-//
-// This file may be distributed under the terms of the License Agreement
-// provided with this software.
-//
-// THIS FILE IS PROVIDED AS IS WITH NO WARRANTY OF ANY KIND, INCLUDING THE
-// WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+// **********************************************************************
+// *                    SEGGER Microcontroller GmbH                     *
+// *                        The Embedded Experts                        *
+// **********************************************************************
+// *                                                                    *
+// *            (c) 2014 - 2025 SEGGER Microcontroller GmbH             *
+// *            (c) 2001 - 2025 Rowley Associates Limited               *
+// *                                                                    *
+// *           www.segger.com     Support: support@segger.com           *
+// *                                                                    *
+// **********************************************************************
+// *                                                                    *
+// * All rights reserved.                                               *
+// *                                                                    *
+// * Redistribution and use in source and binary forms, with or         *
+// * without modification, are permitted provided that the following    *
+// * condition is met:                                                  *
+// *                                                                    *
+// * - Redistributions of source code must retain the above copyright   *
+// *   notice, this condition and the following disclaimer.             *
+// *                                                                    *
+// * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND             *
+// * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,        *
+// * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF           *
+// * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE           *
+// * DISCLAIMED. IN NO EVENT SHALL SEGGER Microcontroller BE LIABLE FOR *
+// * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR           *
+// * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT  *
+// * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;    *
+// * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF      *
+// * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT          *
+// * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE  *
+// * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH   *
+// * DAMAGE.                                                            *
+// *                                                                    *
+// **********************************************************************
 //
 //
 //                           Preprocessor Definitions
@@ -39,15 +65,24 @@
 //
 // FULL_LIBRARY
 //
-//  If defined then 
-//    - argc, argv are setup by the debug_getargs.
-//    - the exit symbol is defined and executes on return from main.
-//    - the exit symbol calls destructors, atexit functions and then debug_exit.
+//   If defined then 
+//     - argc, argv are setup by the SEGGER_SEMIHOST_GetArgs.
+//     - the exit symbol is defined and executes on return from main.
+//     - the exit symbol calls destructors, atexit functions and then SEGGER_SEMIHOST_Exit.
 //  
-//  If not defined then
-//    - argc and argv are zero.
-//    - the exit symbol is defined, executes on return from main and loops
+//   If not defined then
+//     - argc and argv are zero.
+//     - the exit symbol is defined, executes on return from main and loops
 //
+// STACK_CHECK
+//
+//   If defined will set the v8m msplim/psplim registers to the start of the stacks
+//
+// RETURN_FROM_CRT0
+//
+//   If defined, carry out a return to link register on application exit.
+//
+
 
 #ifndef APP_ENTRY_POINT
 #define APP_ENTRY_POINT main
@@ -60,8 +95,8 @@
 
   .global _start
   .extern APP_ENTRY_POINT
-  .global exit
   .weak exit
+  .weak _Exit
 
 #ifdef INITIALIZE_USER_SECTIONS
   .extern InitializeUserMemorySections
@@ -69,7 +104,7 @@
 
   .section .init, "ax"
   .code 16
-  .align 2
+  .balign 2
   .thumb_func
 
 _start:
@@ -83,13 +118,19 @@ _start:
   bics r1, r2
 #endif
   mov sp, r1
+#ifdef RETURN_FROM_CRT0
+  push {lr}
+#endif
 #ifdef INITIALIZE_STACK
   movs r2, #0xCC
   ldr r0, =__stack_start__
   bl memory_set
 #endif
+#ifdef STACK_CHECK
+  ldr r0, =__stack_start__
+  msr msplim, r0
+#endif
 1:
-
   /* Set up process stack if size > 0 */
   ldr r1, =__stack_process_end__
   ldr r0, =__stack_process_start__
@@ -105,6 +146,10 @@ _start:
 #ifdef INITIALIZE_STACK
   movs r2, #0xCC
   bl memory_set
+#endif
+#ifdef STACK_CHECK
+  ldr r0, =__stack_process_start__
+  msr psplim, r0
 #endif
 1:
 
@@ -188,22 +233,30 @@ _start:
   bl memory_set
 #endif /* #ifdef INITIALIZE_TCM_SECTIONS */
 
+#if !defined(__HEAP_SIZE__) || (__HEAP_SIZE__)
   /* Initialize the heap */
   ldr r0, = __heap_start__
   ldr r1, = __heap_end__
   subs r1, r1, r0
+#if defined(__SES_ARM)
+  bl __SEGGER_RTL_init_heap
+#else
   cmp r1, #8
   blt 1f
   movs r2, #0
   str r2, [r0]
-  adds r0, r0, #4
-  str r1, [r0]
+  str r1, [r0, #4] 
 1:
+#endif
+#endif
 
 #ifdef INITIALIZE_USER_SECTIONS
   ldr r2, =InitializeUserMemorySections
   blx r2
 #endif
+
+  .type start, function
+start:
 
   /* Call constructors */
   ldr r0, =__ctors_start__
@@ -219,18 +272,14 @@ ctor_loop:
   b ctor_loop
 ctor_end:
 
-  /* Setup initial call frame */
-  movs r0, #0
-  mov lr, r0
-  mov r12, sp
+  .type __startup_complete, function
+__startup_complete:
 
-  .type start, function
-start:
   /* Jump to application entry point */
 #ifdef FULL_LIBRARY
   movs r0, #ARGSSPACE
   ldr r1, =args
-  ldr r2, =debug_getargs  
+  ldr r2, =SEGGER_SEMIHOST_GetArgs
   blx r2
   ldr r1, =args
 #else
@@ -239,6 +288,7 @@ start:
 #endif
   ldr r2, =APP_ENTRY_POINT
   blx r2
+  .size _start,.-_start
 
   .thumb_func
 exit:
@@ -252,7 +302,7 @@ dtor_loop:
   cmp r0, r1
   beq dtor_end
   ldr r2, [r0]
-  add r0, #4
+  adds r0, #4
   push {r0-r1}
   blx r2
   pop {r0-r1}
@@ -260,33 +310,64 @@ dtor_loop:
 dtor_end:
 
   /* Call atexit functions */
-  ldr r2, =_execute_at_exit_fns  
+  ldr r2, =__SEGGER_RTL_execute_at_exit_fns
   blx r2
 
-  /* Call debug_exit with return result/exit parameter */
+  .type _exit, function
+_exit:
+  .type _Exit, function
+_Exit:
+  /* Call SEGGER_SEMIHOST_Exit with return result/exit parameter */
   mov r0, r5
-  ldr r2, =debug_exit  
+  ldr r2, =SEGGER_SEMIHOST_Exit
   blx r2
+#elif defined(RETURN_FROM_CRT0)
+  /* Returned from application entry point */
+  pop {r2}
+  bx r2
+#else
+  .type _exit, function
+_exit:
+  .type _Exit, function
+_Exit:
 #endif
-
-  /* Returned from application entry point, loop forever. */
+  /* Loop forever */
+.type exit_loop, function
 exit_loop:
   b exit_loop
 
   .thumb_func
 memory_copy:
   cmp r0, r1
-  beq 2f
+  beq 3f
   subs r2, r2, r1
-  beq 2f
+  beq 3f
+
+  /* if either pointer or length is not word aligned then byte copy */
+  mov r3, r0
+  orrs r3, r1
+  orrs r3, r2
+  movs r4, #0x3
+  tst r3, r4
+  bne 2f
+  /* word copy */
 1:
+  ldr r3, [r0]
+  adds r0, r0, #4
+  str r3, [r1]
+  adds r1, r1, #4
+  subs r2, r2, #4
+  bne 1b
+  bx lr
+  /* byte copy */
+2:
   ldrb r3, [r0]
   adds r0, r0, #1
   strb r3, [r1]
   adds r1, r1, #1
   subs r2, r2, #1
-  bne 1b
-2:
+  bne 2b
+3:
   bx lr
 
   .thumb_func
@@ -303,109 +384,33 @@ memory_set:
 
 .macro HELPER helper_name
   .section .text.\helper_name, "ax", %progbits
-  .global \helper_name
-  .weak \helper_name  
-\helper_name:
+  .balign 2 
+  .weak \helper_name
   .thumb_func
-.endm
-
-.macro JUMPTO name
-#if defined(__thumb__) && !defined(__thumb2__)
-  mov r12, r0
-  ldr r0, =\name
-  push {r0}
-  mov r0, r12
-  pop {pc}
-#else
-  b \name
-#endif
+\helper_name:
 .endm
 
 HELPER __aeabi_read_tp
   ldr r0, =__tbss_start__-8
   bx lr
-HELPER __heap_lock
-  bx lr
-HELPER __heap_unlock
-  bx lr
-HELPER __printf_lock
-  bx lr
-HELPER __printf_unlock
-  bx lr
-HELPER __scanf_lock
-  bx lr
-HELPER __scanf_unlock
-  bx lr
-HELPER __debug_io_lock
-  bx lr
-HELPER __debug_io_unlock
-  bx lr
 HELPER abort
+#ifdef FULL_LIBRARY
+  movs r0, #1
+  ldr r2, =SEGGER_SEMIHOST_Exit
+  blx r2
+#endif
   b .
 HELPER __assert
   b .
+HELPER __assert_func
+  b .
 HELPER __aeabi_assert
   b .
-HELPER __cxa_pure_virtual
-  b .
-HELPER __cxa_guard_acquire
-  ldr r3, [r0]
-#if defined(__thumb__) && !defined(__thumb2__)
-  movs r0, #1
-  tst r3, r0
-#else
-  tst r3, #1
-#endif
-  beq 1f
-  movs r0, #0
-  bx lr
-1:
-  movs r0, #1
-  bx lr
-HELPER __cxa_guard_release
-  movs r3, #1
-  str r3, [r0]
-  bx lr
-HELPER __cxa_guard_abort
-  bx lr
 HELPER __sync_synchronize
   bx lr
-HELPER __getchar
-  JUMPTO debug_getchar
-HELPER __putchar
-  JUMPTO debug_putchar
-HELPER __open
-  JUMPTO debug_fopen
-HELPER __close
-  JUMPTO debug_fclose
-HELPER __write   
-  mov r3, r0
-  mov r0, r1
-  movs r1, #1  
-  JUMPTO debug_fwrite
-HELPER __read  
-  mov r3, r0
-  mov r0, r1
-  movs r1, #1 
-  JUMPTO debug_fread
-HELPER __seek
-  push {r4, lr}
-  mov r4, r0
-  bl debug_fseek
-  cmp r0, #0
-  bne 1f
-  mov r0, r4
-  bl debug_ftell
-  pop {r4, pc}
-1:
-  ldr r0, =-1
-  pop {r4, pc}
-  // char __user_locale_name_buffer[];
-  .section .bss.__user_locale_name_buffer, "aw", %nobits
-  .global __user_locale_name_buffer
-  .weak __user_locale_name_buffer
-  __user_locale_name_buffer:
-  .word 0x0
+HELPER __semihost
+  bkpt 0xab
+  bx lr
 
 #ifdef FULL_LIBRARY
   .bss
